@@ -1,0 +1,206 @@
+<div class="container">
+
+  <!-- ================= PLAN SELECTION ================= -->
+  <div class="card" *ngIf="step === 'plan'">
+    <h1>Polyconomy-AI</h1>
+    <h6>Choose how you'll use Polyconomy-AI</h6>
+
+    <div class="plans">
+      <div class="plan-card" (click)="selectPlan('student')">
+        <h3>Student / Researcher</h3>
+        <p>Academic access and research tools</p>
+      </div>
+
+      <div class="plan-card" (click)="selectPlan('professional')">
+        <h3>Professional</h3>
+        <p>Advanced tools for individuals</p>
+      </div>
+
+      <div class="plan-card" (click)="selectPlan('enterprise')">
+        <h3>Institution / Enterprise</h3>
+        <p>Teams and organisations</p>
+      </div>
+    </div>
+
+    <div>
+      <button (click)="goToGuestMode()">Continue as guest</button>
+    </div>
+  </div>
+
+  
+
+  <!-- ================= AUTH ================= -->
+  <div class="card" *ngIf="step === 'auth'">
+    <h1>Polyconomy-AI</h1>
+
+    <h2 *ngIf="mode==='login'">Sign in</h2>
+    <h2 *ngIf="mode==='signup'">Create account</h2>
+
+    <p class="selected-plan" *ngIf="mode==='signup' && selectedPlan">
+      {{ selectedPlanLabel }} <a (click)="step='plan'">Change</a>
+    </p>
+
+    <form (ngSubmit)="submit()" novalidate>
+
+      <!-- LOGIN -->
+      <ng-container *ngIf="mode==='login'">
+        <input
+          type="text"
+          placeholder="Username or Email"
+          [(ngModel)]="form.identifier"
+          name="identifier"
+          required
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          [(ngModel)]="form.password"
+          name="loginPassword"
+          required
+        />
+        <!-- Add this inside the LOGIN ng-container, after the password input -->
+        <p class="switch" style="text-align:right; margin-top: -8px;">
+          <a (click)="goToForgotPassword()">Forgot password?</a>
+        </p>
+      </ng-container>
+
+      <!-- SIGNUP -->
+      <ng-container *ngIf="mode==='signup'">
+        <input type="text" placeholder="Full name" [(ngModel)]="form.name" name="name" />
+        <input type="email" placeholder="Email" [(ngModel)]="form.email" name="email" required />
+        <input type="text" placeholder="Username (optional)" [(ngModel)]="form.username" name="username" />
+
+        <input
+          type="password"
+          placeholder="Password"
+          [(ngModel)]="form.password"
+          name="signupPassword"
+          required
+          (input)="checkPasswordStrength(form.password)"
+        />
+
+        <input
+          type="password"
+          placeholder="Confirm password"
+          [(ngModel)]="form.confirmPassword"
+          name="confirmPassword"
+          required
+          (input)="checkPasswordMatch()"
+        />
+
+        <div class="password-strength" *ngIf="passwordStrength">
+        <div class="strength-bar">
+          <span [class]="passwordStrength"></span>
+        </div>
+
+        <!-- <span class="strength-label" [class]="passwordStrength">
+          {{ passwordStrengthLabel }}
+        </span> -->
+      </div>
+
+      <div class="password-mismatch" *ngIf="passwordMismatch">
+        Passwords do not match
+      </div>
+
+
+      </ng-container>
+
+      <button type="submit">
+        {{ mode === 'login' ? 'Sign in' : 'Sign up' }}
+      </button>
+    </form>
+
+    <p class="error" *ngIf="error">{{ error }}</p>
+
+    <p class="switch">
+      <span *ngIf="mode==='login'">
+        Don't have an account? <a (click)="goToSignup()">Sign up</a>
+      </span>
+      <span *ngIf="mode==='signup'">
+        Already have an account? <a (click)="mode='login'; step='auth'">Sign in</a>
+      </span>
+    </p>
+  </div>
+
+  <!-- ================= FORGOT PASSWORD ================= -->
+<div class="card" *ngIf="step === 'forgot'">
+  <h1>Polyconomy-AI</h1>
+  <h2>Reset password</h2>
+
+  <!-- Email form -->
+  <ng-container *ngIf="forgotStep === 'form'">
+    <p>Enter your account email and we'll send you a reset link.</p>
+
+    <form (ngSubmit)="submitForgotPassword()" novalidate>
+      <input
+        type="email"
+        placeholder="Email address"
+        [(ngModel)]="forgotEmail"
+        name="forgotEmail"
+        required
+      />
+      <button type="submit">Send reset link</button>
+    </form>
+
+    <p class="error" *ngIf="error">{{ error }}</p>
+
+    <p class="switch">
+      <a (click)="step='auth'; mode='login'">Back to sign in</a>
+    </p>
+  </ng-container>
+
+  <!-- Confirmation message -->
+  <ng-container *ngIf="forgotStep === 'sent'">
+    <p>
+      If <strong>{{ forgotEmail }}</strong> is registered, you'll receive
+      a reset link shortly. Check your spam folder if it doesn't arrive.
+    </p>
+    <p class="switch">
+      <a (click)="step='auth'; mode='login'">Back to sign in</a>
+    </p>
+  </ng-container>
+</div>
+
+
+<!-- ================= RESET PASSWORD ================= -->
+<div class="card" *ngIf="step === 'reset'">
+  <h1>Polyconomy-AI</h1>
+  <h2>Choose a new password</h2>
+
+  <form (ngSubmit)="submitResetPassword()" novalidate>
+    <input
+      type="password"
+      placeholder="New password"
+      [(ngModel)]="resetForm.password"
+      name="resetPassword"
+      required
+      (input)="checkPasswordStrength(resetForm.password)"
+    />
+
+    <input
+      type="password"
+      placeholder="Confirm new password"
+      [(ngModel)]="resetForm.confirmPassword"
+      name="resetConfirmPassword"
+      required
+      (input)="checkPasswordMatch()"
+    />
+
+    <div class="password-strength" *ngIf="passwordStrength">
+      <div class="strength-bar">
+        <span [class]="passwordStrength"></span>
+      </div>
+    </div>
+
+    <div class="password-mismatch" *ngIf="passwordMismatch">
+      Passwords do not match
+    </div>
+
+    <button type="submit">Update password</button>
+  </form>
+
+  <p class="error" *ngIf="error">{{ error }}</p>
+</div>
+
+</div>
+

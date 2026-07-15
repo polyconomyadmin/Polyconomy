@@ -1,0 +1,8 @@
+{
+  "/api": {
+    "target": "https://polyconomy-ai-bf583cb75ac1.herokuapp.com",
+    "secure": true,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  }
+}

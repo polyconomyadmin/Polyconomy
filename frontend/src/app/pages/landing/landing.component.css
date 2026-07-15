@@ -1,0 +1,397 @@
+/* .container {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card {
+  width: 360px;
+  padding: 32px;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0,0,0,.1);
+  text-align: center;
+}
+
+input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 8px;
+}
+
+.switch {
+  margin-top: 16px;
+}
+
+.switch a {
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.error {
+  color: red;
+  margin-top: 10px;
+} */
+
+/* Global feel */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text",
+               "Helvetica Neue", Arial, sans-serif;
+  background: linear-gradient(180deg, #f5f5f7, #ffffff);
+  color: #1d1d1f;
+}
+
+/* Centered layout */
+.container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+/* Card */
+.card {
+  width: 100%;
+  max-width: 380px;
+  padding: 36px 32px;
+  border-radius: 20px;
+  background: #ffffff;
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.08),
+    0 1px 3px rgba(0, 0, 0, 0.05);
+  text-align: center;
+}
+
+/* Headings */
+.card h1 {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.card p {
+  font-size: 14px;
+  color: #6e6e73;
+  margin-bottom: 24px;
+}
+
+/* Inputs */
+input {
+  width: 100%;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  border-radius: 12px;
+  border: 1px solid #d2d2d7;
+  font-size: 15px;
+  background: #fbfbfd;
+  outline: none;
+}
+
+input:focus {
+  border-color: #0071e3;
+  box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15);
+}
+
+/* Primary button */
+button {
+  width: 100%;
+  padding: 14px;
+  margin-top: 8px;
+  border-radius: 14px;
+  border: none;
+  background: #0071e3;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0, 113, 227, 0.35);
+}
+
+/* Switch login/signup */
+.switch {
+  margin-top: 20px;
+  font-size: 14px;
+  color: #6e6e73;
+}
+
+.switch a {
+  margin-left: 4px;
+  color: #0071e3;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.switch a:hover {
+  text-decoration: underline;
+}
+
+/* Error message */
+.error {
+  margin-top: 12px;
+  font-size: 13px;
+  color: #d70015;
+}
+
+/* Mobile tweaks */
+@media (max-width: 480px) {
+  .card {
+    padding: 28px 24px;
+    border-radius: 16px;
+  }
+}
+
+/* OAuth row */
+.oauth-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 24px 0 12px;
+  padding: 0 12px;
+}
+
+/* Circular buttons */
+.oauth-btn {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 1px solid #d2d2d7;
+  background-color: #ffffff;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 22px;
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    background-color 0.15s ease;
+}
+
+/* Hover / focus */
+.oauth-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  background-color: #f5f5f7;
+}
+
+.oauth-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.2);
+}
+
+/* Provider logos */
+.oauth-btn.google {
+  background-image: url("https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg");
+}
+
+.oauth-btn.microsoft {
+  background-image: url("https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg");
+}
+
+.oauth-btn.linkedin {
+  background-image: url("https://upload.wikimedia.org/wikipedia/commons/c/ca/LinkedIn_logo_initials.png");
+}
+
+/* ================= GENERAL CONTAINER ================= */
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 3rem 2rem;
+  min-height: calc(100vh - 6rem); /* subtract top+bottom padding */
+  background-color: #f9f9f9;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  box-sizing: border-box; /* include padding in height */
+}
+
+
+/* ================= CARD BASE ================= */
+.card {
+  background-color: #fff;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.08);
+  max-width: 800px;
+  width: 100%;
+  margin: 1rem;
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.12);
+}
+
+.card h1 {
+  margin-bottom: 0.25rem;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #111;
+}
+
+.card h6 {
+  margin-bottom: 2rem;
+  color: #666;
+  font-weight: 400;
+}
+
+/* ================= PLAN CARDS CONTAINER ================= */
+.plans {
+  display: flex;
+  justify-content: space-between;
+  gap: 2rem;
+  margin-top: 2rem;
+  flex-wrap: wrap; /* allows mobile stacking */
+}
+
+/* ================= PLAN CARD ================= */
+.plan-card {
+  flex: 1 1 30%; /* equally divide space */
+  background-color: #fff;
+  border-radius: 14px;
+  padding: 2rem;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 300px;
+}
+
+.plan-card:hover {
+  transform: translateY(-6px);
+  box-shadow: #0071e3;
+  border-color: #0071e3;
+;
+}
+
+.plan-card h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #111;
+}
+
+.plan-card p {
+  font-size: 0.95rem;
+  color: #555;
+  margin-bottom: 1rem;
+  flex-grow: 1;
+}
+
+.plan-card ul {
+  text-align: left;
+  padding-left: 1.2rem;
+  margin: 0;
+}
+
+.plan-card li {
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+/* ================= AUTH CARD ELEMENTS ================= */
+.selected-plan {
+  font-size: 0.95rem;
+  margin-bottom: 1.5rem;
+}
+
+.selected-plan a {
+  margin-left: 0.5rem;
+  cursor: pointer;
+  color: #007aff;
+}
+
+input {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  margin-bottom: 1rem;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+button {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border: none;
+  border-radius: 10px;
+  background-color: #007aff;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.25s ease, transform 0.2s ease;
+}
+
+button:hover {
+  background-color: #005fcc;
+  transform: translateY(-2px);
+}
+
+.error {
+  color: #d32f2f;
+  margin-top: 0.5rem;
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 1024px) {
+  .plans {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .plan-card {
+    flex: 1 1 100%;
+    min-height: auto;
+  }
+}
+
+
+/* ================= PASSWORD STRENGTH ================= */
+.strength-bar {
+  height: 4px;
+  background: #eee;
+  margin-bottom: 6px;
+}
+
+.strength-bar span {
+  display: block;
+  height: 100%;
+}
+
+.very-weak { width: 20%; background: #9e9e9e; }
+.weak { width: 40%; background: #f44336; }
+.so-so { width: 60%; background: #ff9800; }
+.good { width: 80%; background: #8bc34a; }
+.great { width: 100%; background: #4caf50; }
+
+.strength-label {
+  font-size: 12px;
+}
+
+.password-mismatch {
+  color: #f44336;
+  font-size: 12px;
+}

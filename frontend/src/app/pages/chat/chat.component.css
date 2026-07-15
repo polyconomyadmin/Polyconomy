@@ -1,0 +1,496 @@
+/* --- App layout --- */
+.app-layout {
+  display: flex;
+  height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  color: #1c1c1e;
+}
+
+/* --- Sidebar --- */
+.sidebar {
+  width: 260px;
+  background: #f8f8f8;
+  padding: 16px;
+  border-right: 1px solid #ddd;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar h3 {
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.sidebar .new-chat-btn {
+  background: #007aff;
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  padding: 10px;
+  margin-bottom: 16px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.sidebar .new-chat-btn:hover {
+  background: #005bb5;
+}
+
+/* Container for 3-dot menu */ .chat-options-container { position: relative; /* parent for absolute popup */ } /* 3-dot menu icon */ .dots { display: none; font-size: 16px; cursor: pointer; } .sidebar li:hover .dots { display: inline-block; } /* Options popup card */ .chat-options { position: absolute; /* absolutely positioned relative to container */ top: 50%; right: 0; transform: translateY(-50%); background: #fff; border: 1px solid #ddd; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); flex-direction: column; padding: 6px 0; min-width: 90px; z-index: 1000; } .chat-options button { width: 100%; background: none; border: none; text-align: left; padding: 6px 12px; font-size: 13px; color: #007aff; cursor: pointer; } .chat-options button:hover { background: #f0f0f5; border-radius: 8px; }
+
+/* Modal backdrop */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.25); /* semi-transparent dark overlay */
+  backdrop-filter: blur(5px); /* subtle blur effect */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.25s ease-in-out;
+}
+
+/* Modal card */
+.modal {
+  background: #ffffff;
+  width: 90%;
+  max-width: 350px;
+  padding: 24px 20px;
+  border-radius: 20px; /* iPhone-style rounded corners */
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  animation: slideUp 0.25s ease-out;
+}
+
+/* Modal title */
+.modal h2 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: #333;
+}
+
+/* Modal text */
+.modal p {
+  font-size: 16px;
+  color: #666;
+  margin-bottom: 24px;
+  line-height: 1.4;
+}
+
+/* Modal buttons wrapper */
+.modal-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* Cancel button */
+.modal-actions .cancel {
+  flex: 1;
+  padding: 12px 0;
+  background: #f1f1f1;
+  color: #333;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.modal-actions .cancel:hover {
+  background: #e0e0e0;
+  transform: translateY(-1px);
+}
+
+/* Delete button */
+.modal-actions .delete {
+  flex: 1;
+  padding: 12px 0;
+  background: #ff3b30; /* iOS style red */
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.modal-actions .delete:hover {
+  background: #e23328;
+  transform: translateY(-1px);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(50px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Optional: responsive text for small screens */
+@media (max-width: 400px) {
+  .modal h2 { font-size: 18px; }
+  .modal p { font-size: 14px; }
+  .modal-actions button { font-size: 15px; padding: 10px 0; }
+}
+
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.sidebar li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 12px;
+  margin-bottom: 6px;
+  position: relative;
+  transition: background 0.2s;
+}
+
+.sidebar li:hover {
+  background: #f5f5f7;
+}
+
+.chat-title {
+  font-size: 14px;
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* --- Chat area --- */
+.chat-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid #ddd;
+  background: #f2f2f7;
+  font-weight: 600;
+  position: relative;
+  align-items: center;
+}
+
+
+.heading-username {
+  position: absolute;
+  left: 75%;
+  transform: translateX(-25%); 
+  padding: 12px 16px;
+}
+
+.user{
+  display: flex;
+  gap: 12px; /* space between buttons */
+}
+
+/* --- Messages --- */
+.messages {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.messages .user,
+.messages .ai {
+  display: flex;
+}
+
+.messages .user {
+  justify-content: flex-end;
+  
+}
+
+.messages .ai {
+  justify-content: flex-start;
+}
+
+
+
+/* --- Chat bubbles (Apple style) --- */
+.messages .user .message-text {
+  background: #007aff; /* green bubble for user */
+  color: #ffffff;
+  padding: 10px 14px;
+  border-radius: 20px;
+  border-bottom-right-radius: 4px;
+  max-width: 70%;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  font-size: 14px;
+  line-height: 1.4;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.messages .ai .message-text {
+  background: #f1f0f0; /* grey bubble for AI */
+  color: #1c1c1e;
+  padding: 10px 14px;
+  border-radius: 20px;
+  border-bottom-left-radius: 4px;
+  max-width: 70%;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  font-size: 14px;
+  line-height: 1.4;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+/* --- Footer / Input --- */
+footer {
+  display: flex;
+  padding: 12px 16px;
+  border-top: 1px solid #ddd;
+  gap: 8px;
+  align-items: flex-end;
+  background: #f2f2f7;
+}
+
+footer .input-wrapper {
+  flex: 1;
+  display: flex;
+}
+
+footer textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 16px;
+  border: 1px solid #ccc;
+  resize: none;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  overflow-y: hidden;
+  min-height: 20px;
+  max-height: 200px;
+}
+
+footer button {
+  flex-shrink: 0;
+  padding: 10px 20px;
+  border-radius: 16px;
+  border: none;
+  background: #007aff;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+footer button:hover {
+  background: #005bb5;
+}
+
+
+/* --- Apple-style Sign Out Button --- */
+.signout-btn {
+  background: #f2f2f7;           /* iOS light gray background */
+  color: #007aff;                 /* iOS blue text */
+  border: none;
+  border-radius: 16px;            /* fully rounded like iOS button */
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* subtle shadow */
+  transition: all 0.2s ease;
+}
+
+.signout-btn:hover {
+  background: #e0e0e5;            /* slightly darker gray on hover */
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15); /* slightly bigger shadow */
+}
+
+.signout-btn:active {
+  background: #d6d6db;            /* pressed effect */
+  transform: translateY(1px);     /* subtle press down movement */
+}
+
+/* Overlay with blur */
+.side-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  backdrop-filter: blur(6px);
+  background: rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  z-index: 1000;
+}
+
+.side-overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Right Sliding Panel */
+.info-panel {
+  position: fixed;
+  top: 0;
+  right: -400px; /* hidden off-screen */
+  width: 350px;
+  height: 100%;
+  background: white;
+  box-shadow: -5px 0 25px rgba(0, 0, 0, 0.2);
+  transition: right 0.3s ease;
+  z-index: 1001;
+  display: flex;
+  flex-direction: column;
+}
+
+.info-panel.open {
+  right: 0; /* slides in */
+}
+
+.panel-content {
+  padding: 25px;
+  position: relative;
+  height: 100%;
+}
+
+.close-btn {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  cursor: pointer;
+  font-size: 20px;
+}
+
+.aboutcontact {
+    display: flex;
+    gap: 15px;
+}
+
+.btn {
+  background: #f2f2f7;
+  color: #007aff;
+  border: none;
+  border-radius: 16px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: all 0.2s ease;
+  width: 100%;
+  margin-right: 5%; /* GAP between buttons */
+}
+
+
+.btn:hover {
+  background: #e0e0e5;            /* slightly darker gray on hover */
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15); /* slightly bigger shadow */
+}
+
+.aboutcontact {
+  display: flex;
+  gap: 15px;
+}
+
+.language-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 40px;
+  left: 0;
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(20px);
+  border-radius: 14px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+  padding: 8px;
+  display: none;
+  flex-direction: column;
+  min-width: 160px;
+}
+
+.language-dropdown:hover .dropdown-menu {
+  display: flex;
+}
+
+.dropdown-menu button {
+  background: transparent;
+  border: none;
+  padding: 10px;
+  text-align: left;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.dropdown-menu button:hover {
+  background: rgba(0,0,0,0.05);
+}
+
+
+/* .typing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+}
+
+.typing-indicator span {
+  width: 6px;
+  height: 6px;
+  background-color: #999;
+  border-radius: 50%;
+  display: inline-block;
+  animation: typing 1.4s infinite ease-in-out;
+}
+
+.typing-indicator span:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.typing-indicator span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-indicator span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typing {
+  0%, 60%, 100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  30% {
+    transform: translateY(-6px);
+    opacity: 1;
+  }
+} */

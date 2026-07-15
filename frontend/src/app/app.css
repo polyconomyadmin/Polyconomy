@@ -1,0 +1,118 @@
+/* Global feel */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text",
+               "Helvetica Neue", Arial, sans-serif;
+  background: linear-gradient(180deg, #f5f5f7, #ffffff);
+  color: #1d1d1f;
+}
+
+/* Centered layout */
+.container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+/* Card */
+.card {
+  width: 100%;
+  max-width: 380px;
+  padding: 36px 32px;
+  border-radius: 20px;
+  background: #ffffff;
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.08),
+    0 1px 3px rgba(0, 0, 0, 0.05);
+  text-align: center;
+}
+
+/* Headings */
+.card h1 {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.card p {
+  font-size: 14px;
+  color: #6e6e73;
+  margin-bottom: 24px;
+}
+
+/* Inputs */
+input {
+  width: 100%;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  border-radius: 12px;
+  border: 1px solid #d2d2d7;
+  font-size: 15px;
+  background: #fbfbfd;
+  outline: none;
+}
+
+input:focus {
+  border-color: #0071e3;
+  box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15);
+}
+
+/* Primary button */
+button {
+  width: 100%;
+  padding: 14px;
+  margin-top: 8px;
+  border-radius: 14px;
+  border: none;
+  background: #0071e3;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0, 113, 227, 0.35);
+}
+
+/* Switch login/signup */
+.switch {
+  margin-top: 20px;
+  font-size: 14px;
+  color: #6e6e73;
+}
+
+.switch a {
+  margin-left: 4px;
+  color: #0071e3;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.switch a:hover {
+  text-decoration: underline;
+}
+
+/* Error message */
+.error {
+  margin-top: 12px;
+  font-size: 13px;
+  color: #d70015;
+}
+
+/* Mobile tweaks */
+@media (max-width: 480px) {
+  .card {
+    padding: 28px 24px;
+    border-radius: 16px;
+  }
+}
