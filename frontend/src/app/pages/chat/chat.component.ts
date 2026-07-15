@@ -108,9 +108,9 @@ export class ChatComponent implements OnInit {
 
       this.currentChat = newChat;
       this.addAIMessage(
-        this.currentChat,
-        `Hello ${this.user.name}!\n I'm PolyconomyAI and I'm trained on economics research and literature.\n I can help explain concepts, discuss theories, and explore economic ideas.\n Please note, I provide information for understanding only and cannot offer personalised financial advice.\n Think of me as a guide to economic knowledge, not a decision-maker.`
-      );
+      this.currentChat,
+      "Hello there! I'm Polyconomy, an AI trained on economics research and literature.\n\nI can help explain concepts, discuss theories, and explore economic ideas.\n\nPlease note, I provide information for understanding only and cannot offer personalised financial advice.\n\nThink of me as a guide to economic knowledge, not a decision-maker."
+    );
     });
   }
 
