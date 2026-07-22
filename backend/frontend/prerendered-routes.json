@@ -1,0 +1,13 @@
+{
+  "routes": {
+    "/": {},
+    "/about": {},
+    "/chat": {},
+    "/contact": {},
+    "/login": {},
+    "/reset-password": {},
+    "/select-plan": {},
+    "/settings": {},
+    "/signup": {}
+  }
+}
