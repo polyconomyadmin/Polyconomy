@@ -149,7 +149,7 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 
 
-FRONTEND_URL = 'https://polyconomy-ai-bf583cb75ac1.herokuapp.com'
+FRONTEND_URL = 'http://localhost:8000/'
 
 # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 # EMAIL_HOST = 'smtp.gmail.com'
@@ -159,7 +159,7 @@ FRONTEND_URL = 'https://polyconomy-ai-bf583cb75ac1.herokuapp.com'
 # EMAIL_HOST_PASSWORD = 'your-app-password'
 # DEFAULT_FROM_EMAIL = 'Polyconomy-AI <your@email.com>'
 
-# FRONTEND_URL = 'https://polyconomy-ai-bf583cb75ac1.herokuapp.com/'
+# FRONTEND_URL = 'http://localhost:4200/'
 
 # -----------------------------
 # STATIC FILES

@@ -10,7 +10,7 @@ export class RagService {
 
   queryRag(text: string) {
     return this.http.post<{ response: string }>(
-      'https://polyconomy-ai-bf583cb75ac1.herokuapp.com/api/query/',
+      'http://localhost:8000/api/query/',
       { text },
       { headers: { 'Content-Type': 'application/json' } }
     );
