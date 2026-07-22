@@ -39,7 +39,7 @@ export class ChatComponent implements OnInit {
   otherChats: Chat[] = [];
   currentChat: Chat | null = null;
   newMessage: string = '';
-  API = 'http://localhost:8000/api/users';
+  API = 'https://polyconomy-74386831d29f.herokuapp.com/api/users';
   icons = { Pin, Trash2, Menu, Send, Globe, Copy, Share2, Volume2, RotateCcw, Pencil, Square, Plus };
 
   showDeleteModal: boolean = false;

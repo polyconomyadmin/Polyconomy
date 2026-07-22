@@ -10,7 +10,7 @@ interface AuthResponse {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private API = 'http://localhost:8000/api';
+  private API = 'https://polyconomy-74386831d29f.herokuapp.com/api';
   private TOKEN_KEY = 'token';
   private USER_KEY = 'user';
 
