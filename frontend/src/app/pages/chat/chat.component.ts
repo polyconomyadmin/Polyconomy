@@ -4,12 +4,16 @@ import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { HttpClient } from '@angular/common/http';
 import { LucideAngularModule } from 'lucide-angular';
-import { Pin, Trash2 } from 'lucide-angular';
+import { Pin, Trash2, Menu, Send, Globe, Copy, Share2, Volume2, RotateCcw, Pencil, Square, Plus } from 'lucide-angular';
 import { RagService } from '../../services/rag.service';
 
 interface Message {
   text: string;
   sender: 'user' | 'ai';
+  timestamp?: string;
+  editing?: boolean;
+  editText?: string;
+  speaking?: boolean;
 }
 
 interface Chat {
@@ -35,7 +39,7 @@ export class ChatComponent implements OnInit {
   currentChat: Chat | null = null;
   newMessage: string = '';
   API = 'https://polyconomy-ai-bf583cb75ac1.herokuapp.com/api/users';
-  icons = { Pin, Trash2 };
+  icons = { Pin, Trash2, Menu, Send, Globe, Copy, Share2, Volume2, RotateCcw, Pencil, Square, Plus };
 
   showDeleteModal: boolean = false;
   chatToDelete: Chat | null = null;
@@ -45,6 +49,13 @@ export class ChatComponent implements OnInit {
 
   isPanelOpen: boolean = false;
   panelType: 'contact' | 'about' | null = null;
+  sidebarOpen: boolean = true;
+
+  // Streaming state (Base44-style word-by-word reveal)
+  isGenerating = false;
+  streamingText = '';
+  private streamTimer: any = null;
+  private cancelStream = false;
 
   @ViewChild('messagesContainer') messagesContainer!: ElementRef;
 
@@ -167,11 +178,10 @@ export class ChatComponent implements OnInit {
   // ─── Messaging ────────────────────────────────────────────────────────────
 
   async sendMessage() {
-    if (!this.newMessage.trim() || !this.currentChat) return;
+    if (!this.newMessage.trim() || !this.currentChat || this.isGenerating) return;
 
     const text = this.newMessage;
-    this.currentChat.messages.push({ text, sender: 'user' });
-    this.scrollToBottom();
+    this.currentChat.messages.push({ text, sender: 'user', timestamp: new Date().toISOString() });
     this.newMessage = '';
 
     // Save user message to backend
@@ -179,48 +189,91 @@ export class ChatComponent implements OnInit {
       .post(`${this.API}/chats/${this.user.username}/${this.currentChat.chat_id}/add/`, { text, sender: 'user' })
       .subscribe();
 
-    // Show typing indicator
-    const typingMessage: Message = { text: 'Typing...', sender: 'ai' };
-    this.currentChat.messages.push(typingMessage);
+    this.askRag(text);
+  }
+
+  /**
+   * Sends a question to the RAG service and streams the reply. Separate from
+   * sendMessage so "Try again" and "Edit" can regenerate without adding another
+   * user bubble or re-saving the question. Reveals the reply word-by-word.
+   */
+  async askRag(text: string) {
+    if (!this.currentChat) return;
+    this.isGenerating = true;
+    this.streamingText = '';
+    this.cancelStream = false;
+    this.cdr.markForCheck();
     this.scrollToBottom();
 
     // Single detect call: gives us the language AND English translation for free.
-    // We send the English translation to RAG so it can match embeddings correctly —
-    // this is what was causing the TRL/'s/ garbage response for non-Latin scripts.
     const { lang: langToUse, translatedToEn } = await this.detectLanguage(text);
-    console.log('[sendMessage] lang:', langToUse, '| query to RAG:', translatedToEn);
+    if (this.cancelStream) return;
+    console.log('[askRag] lang:', langToUse, '| query to RAG:', translatedToEn);
 
     this.ragService.queryRag(translatedToEn).subscribe({
       next: async (res) => {
-        console.log('[sendMessage] RAG response:', res.response);
-
-        const index = this.currentChat!.messages.indexOf(typingMessage);
-        if (index > -1) this.currentChat!.messages.splice(index, 1);
-
+        if (this.cancelStream) return;
         let aiResponse = res.response;
         if (langToUse !== 'en') {
           aiResponse = await this.translateText(aiResponse, langToUse);
         }
-
-        this.addAIMessage(this.currentChat!, aiResponse);
+        if (this.cancelStream) return;
+        this.streamResponse(aiResponse);
       },
       error: async (err) => {
-        const index = this.currentChat!.messages.indexOf(typingMessage);
-        if (index > -1) this.currentChat!.messages.splice(index, 1);
-
+        console.error('[askRag] RAG error:', err);
+        if (this.cancelStream) return;
         let errorMsg = 'Sorry, something went wrong.';
         if (langToUse !== 'en') {
           errorMsg = await this.translateText(errorMsg, langToUse);
         }
-
-        this.addAIMessage(this.currentChat!, errorMsg);
-        console.error('[sendMessage] RAG error:', err);
+        if (this.cancelStream) return;
+        this.streamResponse(errorMsg);
       }
     });
   }
 
+  /** Reveals the reply one word at a time, then commits it as a message. */
+  private streamResponse(fullText: string) {
+    const words = fullText.split(' ');
+    let i = 0;
+    this.streamTimer = setInterval(() => {
+      if (this.cancelStream || i >= words.length) {
+        clearInterval(this.streamTimer);
+        this.streamTimer = null;
+        const finalText = this.cancelStream ? (this.streamingText || '…') : fullText;
+        this.streamingText = '';
+        this.isGenerating = false;
+        this.addAIMessage(this.currentChat!, finalText);
+        this.cdr.markForCheck();
+        return;
+      }
+      i++;
+      this.streamingText = words.slice(0, i).join(' ');
+      this.cdr.markForCheck();
+      this.scrollToBottom();
+    }, 35);
+  }
+
+  /** Stops generation: finalises whatever has streamed so far. */
+  handleStop() {
+    this.cancelStream = true;
+    if (this.streamTimer) {
+      clearInterval(this.streamTimer);
+      this.streamTimer = null;
+      const partial = this.streamingText || '…';
+      this.streamingText = '';
+      this.isGenerating = false;
+      this.addAIMessage(this.currentChat!, partial);
+    } else {
+      this.isGenerating = false;
+      this.streamingText = '';
+    }
+    this.cdr.markForCheck();
+  }
+
   addAIMessage(chat: Chat, text: string) {
-    const aiMessage: Message = { text, sender: 'ai' };
+    const aiMessage: Message = { text, sender: 'ai', timestamp: new Date().toISOString() };
     chat.messages.push(aiMessage);
     // App runs zoneless, so async updates (RAG response / error) must
     // explicitly notify Angular to re-render the message list.
@@ -231,6 +284,72 @@ export class ChatComponent implements OnInit {
     this.http
       .post(`${this.API}/chats/${this.user.username}/${chat.chat_id}/add/`, { text, sender: 'ai' })
       .subscribe();
+  }
+
+  toggleSidebar() {
+    this.sidebarOpen = !this.sidebarOpen;
+  }
+
+  // ─── Message actions (copy / share / read-aloud / edit / try-again) ────────
+
+  copyMessage(text: string) {
+    navigator.clipboard?.writeText(text).catch(() => {});
+  }
+
+  async shareMessage(text: string) {
+    if (typeof navigator !== 'undefined' && (navigator as any).share) {
+      try {
+        await (navigator as any).share({ title: 'Polyconomy', text });
+      } catch { /* user cancelled */ }
+    } else {
+      this.copyMessage(text);
+    }
+  }
+
+  toggleReadAloud(msg: Message) {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+    if (msg.speaking) {
+      window.speechSynthesis.cancel();
+      msg.speaking = false;
+      return;
+    }
+    window.speechSynthesis.cancel();
+    this.currentChat?.messages.forEach(m => (m.speaking = false));
+    const utter = new SpeechSynthesisUtterance(msg.text);
+    utter.onend = () => {
+      msg.speaking = false;
+      this.cdr.markForCheck();
+    };
+    msg.speaking = true;
+    window.speechSynthesis.speak(utter);
+  }
+
+  tryAgain(index: number) {
+    if (!this.currentChat) return;
+    const userMsg = this.currentChat.messages[index - 1];
+    if (!userMsg || userMsg.sender !== 'user') return;
+    this.currentChat.messages = this.currentChat.messages.slice(0, index);
+    this.askRag(userMsg.text);
+  }
+
+  startEdit(msg: Message) {
+    msg.editText = msg.text;
+    msg.editing = true;
+  }
+
+  cancelEdit(msg: Message) {
+    msg.editing = false;
+  }
+
+  saveEdit(msg: Message, index: number) {
+    if (!this.currentChat) return;
+    const newText = (msg.editText ?? '').trim();
+    if (!newText) return;
+    msg.text = newText;
+    msg.editing = false;
+    msg.timestamp = new Date().toISOString();
+    this.currentChat.messages = this.currentChat.messages.slice(0, index + 1);
+    this.askRag(newText);
   }
 
   // ─── Language Detection & Translation ────────────────────────────────────

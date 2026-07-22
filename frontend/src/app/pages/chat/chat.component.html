@@ -1,25 +1,197 @@
 <div class="app-layout">
-  <!-- Sidebar -->
-  <aside class="sidebar">
+  <!-- Sidebar: chat history -->
+  <aside class="sidebar" [class.collapsed]="!sidebarOpen">
+    <button class="new-chat-btn" (click)="createNewChat()">
+      <lucide-icon [img]="icons.Plus" size="16"></lucide-icon>
+      New Chat
+    </button>
 
-  <h3 *ngIf="pinnedChats.length > 0">Pinned Chats</h3>
-  <ul *ngIf="pinnedChats.length > 0">
-    <li *ngFor="let chat of pinnedChats" [class.active]="currentChat?.chat_id === chat.chat_id">
-      <span class="chat-title" (click)="selectChat(chat)">{{ chat.title }}</span>
+    <div class="chat-list">
+      <h3 *ngIf="pinnedChats.length > 0">Pinned</h3>
+      <ul *ngIf="pinnedChats.length > 0">
+        <li *ngFor="let chat of pinnedChats" [class.active]="currentChat?.chat_id === chat.chat_id" (click)="selectChat(chat)">
+          <span class="chat-title">{{ chat.title }}</span>
+          <div class="chat-options-container">
+            <button class="dots" (click)="toggleOptions(chat, $event)" aria-label="Chat options">⋯</button>
+            <div class="chat-options" *ngIf="chat.showOptions">
+              <button (click)="togglePin(chat)">Unpin</button>
+              <button class="danger" (click)="deleteChat(chat)">Delete</button>
+            </div>
+          </div>
+        </li>
+      </ul>
 
-      <div class="chat-options-container">
-        <span class="dots" (click)="toggleOptions(chat, $event)">⋯</span>
+      <h3 *ngIf="otherChats.length > 0">Chats</h3>
+      <ul *ngIf="otherChats.length > 0">
+        <li *ngFor="let chat of otherChats" [class.active]="currentChat?.chat_id === chat.chat_id" (click)="selectChat(chat)">
+          <span class="chat-title">{{ chat.title }}</span>
+          <div class="chat-options-container">
+            <button class="dots" (click)="toggleOptions(chat, $event)" aria-label="Chat options">⋯</button>
+            <div class="chat-options" *ngIf="chat.showOptions">
+              <button (click)="togglePin(chat)">Pin</button>
+              <button class="danger" (click)="deleteChat(chat)">Delete</button>
+            </div>
+          </div>
+        </li>
+      </ul>
+    </div>
 
-        <!-- Popup menu -->
-        <div class="chat-options" *ngIf="chat.showOptions">
-          <button class="chat-btn" (click)="togglePin(chat)">Unpin</button>
-          <button class="chat-btn" (click)="deleteChat(chat)">Delete</button>
+    <div class="developed-by">
+      <div class="logo-block">
+        <a href="https://www.buckingham.ac.uk/" target="_blank" rel="noopener noreferrer"><img
+          src="/static/frontend/assets/light-mode/UniLogoLightMode.png" alt="University Logo" class="university-logo"></a>
+      </div>
+      <div class="logo-block">
+        <a href="https://vinsoncentre.com/" target="_blank" rel="noopener noreferrer"><img
+          src="/static/frontend/assets/light-mode/VinsonLogoLightMode.png" alt="Collaboration Logo" class="colab-logo"></a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main chat area -->
+  <main class="chat-area">
+    <header>
+      <div class="header-left">
+        <button class="icon-btn" (click)="toggleSidebar()" aria-label="Toggle sidebar">
+          <lucide-icon [img]="icons.Menu" size="20"></lucide-icon>
+        </button>
+        <span class="app-title">Polyconomy</span>
+      </div>
+
+      <div class="header-actions">
+        <div class="language-dropdown">
+          <button class="pill-btn">
+            <lucide-icon [img]="icons.Globe" size="16"></lucide-icon>
+            Translate
+          </button>
+          <div class="dropdown-menu">
+            <button (click)="translate('en')">English</button>
+            <button (click)="translate('es')">Spanish</button>
+            <button (click)="translate('fr')">French</button>
+            <button (click)="translate('de')">German</button>
+            <button (click)="translate('zh-CN')">Chinese</button>
+          </div>
+        </div>
+
+        <button class="pill-btn" (click)="openPanel('contact')">Contact Us</button>
+        <button class="pill-btn" (click)="openPanel('about')">About Us</button>
+        <span class="username" *ngIf="user?.name || user?.username">{{ user.name || user.username }}</span>
+        <button class="pill-btn" (click)="auth.logout()">Sign Out</button>
+      </div>
+    </header>
+
+    <!-- Overlay -->
+    <div class="side-overlay" [class.show]="isPanelOpen" (click)="closePanel()"></div>
+
+    <!-- Sliding Panel -->
+    <div class="info-panel" [class.open]="isPanelOpen">
+      <div class="panel-content">
+        <span class="close-btn" (click)="closePanel()">✕</span>
+        <div *ngIf="panelType === 'contact'">
+          <h2>Contact Us</h2>
+          <p>Email: support@example.com</p>
+          <p>Phone: +1 234 567 890</p>
+        </div>
+        <div *ngIf="panelType === 'about'">
+          <h2>About Us</h2>
+          <p>We are a modern messaging platform focused on real-time communication.</p>
+          <p>Version: 1.0.0</p>
         </div>
       </div>
-    </li>
-  </ul>
+    </div>
 
-    <!-- Delete Confirmation Modal -->
+    <div class="messages" #messagesContainer>
+      <div class="messages-inner">
+        <div *ngFor="let msg of currentChat?.messages; let i = index" class="message-row" [ngClass]="msg.sender">
+          <div class="message-block">
+            <!-- Inline edit (user messages) -->
+            <div *ngIf="msg.editing" class="edit-box">
+              <textarea [(ngModel)]="msg.editText" rows="2" (keydown.enter)="$event.preventDefault(); saveEdit(msg, i)"></textarea>
+              <div class="edit-actions">
+                <button class="edit-cancel" (click)="cancelEdit(msg)">Cancel</button>
+                <button class="edit-save" (click)="saveEdit(msg, i)">Save &amp; resend</button>
+              </div>
+            </div>
+
+            <!-- Normal bubble + action row -->
+            <ng-container *ngIf="!msg.editing">
+              <div class="bubble" [ngClass]="msg.sender">
+                <span class="message-text">{{ msg.text }}</span>
+                <span class="timestamp" *ngIf="msg.timestamp">{{ msg.timestamp | date: 'shortTime' }}</span>
+              </div>
+
+              <div class="message-actions" [ngClass]="msg.sender">
+                <ng-container *ngIf="msg.sender === 'ai'">
+                  <button class="action-btn" (click)="copyMessage(msg.text)" title="Copy" aria-label="Copy">
+                    <lucide-icon [img]="icons.Copy" size="15"></lucide-icon>
+                  </button>
+                  <button class="action-btn" (click)="shareMessage(msg.text)" title="Share" aria-label="Share">
+                    <lucide-icon [img]="icons.Share2" size="15"></lucide-icon>
+                  </button>
+                  <button class="action-btn" [class.active]="msg.speaking" (click)="toggleReadAloud(msg)" title="Read aloud" aria-label="Read aloud">
+                    <lucide-icon [img]="icons.Volume2" size="15"></lucide-icon>
+                  </button>
+                  <button class="action-btn" *ngIf="i > 0" (click)="tryAgain(i)" title="Try again" aria-label="Try again">
+                    <lucide-icon [img]="icons.RotateCcw" size="15"></lucide-icon>
+                  </button>
+                </ng-container>
+
+                <ng-container *ngIf="msg.sender === 'user'">
+                  <button class="action-btn" (click)="copyMessage(msg.text)" title="Copy" aria-label="Copy">
+                    <lucide-icon [img]="icons.Copy" size="15"></lucide-icon>
+                  </button>
+                  <button class="action-btn" (click)="startEdit(msg)" title="Edit" aria-label="Edit">
+                    <lucide-icon [img]="icons.Pencil" size="15"></lucide-icon>
+                  </button>
+                </ng-container>
+              </div>
+            </ng-container>
+          </div>
+        </div>
+
+        <!-- Waiting for the backend (typing dots) -->
+        <div *ngIf="isGenerating && !streamingText" class="message-row ai">
+          <div class="bubble ai typing">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+          </div>
+        </div>
+
+        <!-- Streaming reply (revealed word-by-word) -->
+        <div *ngIf="isGenerating && streamingText" class="message-row ai">
+          <div class="message-block">
+            <div class="bubble ai">
+              <span class="message-text">{{ streamingText }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <div class="input-shell">
+        <div class="input-wrapper">
+          <textarea
+            [(ngModel)]="newMessage"
+            (keydown)="handleKey($event)"
+            (input)="autoResize($event)"
+            placeholder="Type your question..."
+            rows="1"
+          ></textarea>
+          <button *ngIf="!isGenerating" class="send-btn" (click)="sendMessage()" [disabled]="!newMessage.trim()" aria-label="Send">
+            <lucide-icon [img]="icons.Send" size="18"></lucide-icon>
+          </button>
+          <button *ngIf="isGenerating" class="send-btn stop" (click)="handleStop()" aria-label="Stop">
+            <lucide-icon [img]="icons.Square" size="16"></lucide-icon>
+          </button>
+        </div>
+        <p class="input-hint">Press Enter to send, Shift+Enter for a new line</p>
+      </div>
+    </footer>
+  </main>
+
+  <!-- Delete Confirmation Modal -->
   <div class="modal-backdrop" *ngIf="showDeleteModal">
     <div class="modal">
       <h2>Delete Chat?</h2>
@@ -30,126 +202,4 @@
       </div>
     </div>
   </div>
-
-
-  <h3 *ngIf="otherChats.length > 0">Other Chats</h3>
-  <ul *ngIf="otherChats.length > 0">
-    <li *ngFor="let chat of otherChats" [class.active]="currentChat?.chat_id === chat.chat_id">
-      <span class="chat-title" (click)="selectChat(chat)">{{ chat.title }}</span>
-
-      <div class="chat-options-container">
-        <span class="dots" (click)="toggleOptions(chat, $event)">⋯</span>
-
-        <!-- Popup menu -->
-        <div class="chat-options" *ngIf="chat.showOptions">
-          <button (click)="togglePin(chat)">Pin</button>
-          <button (click)="deleteChat(chat)">Delete</button>
-        </div>
-      </div>
-    </li>
-  </ul>
-
-  <button class="new-chat-btn" (click)="createNewChat()">+ Start New Chat</button>
-    <div class="aboutcontact">
-          <button class="btn" (click)="openPanel('contact')">Contact Us</button>
-          <button class="btn" (click)="openPanel('about')">About Us</button>
-    </div>
-</aside>
-
-<!-- <div *ngIf="message.typing" class="typing-indicator">
-  <span></span>
-  <span></span>
-  <span></span>
 </div>
-
-<div *ngIf="!message.typing">
-  {{ message.text }}
-</div> -->
-
-
-
-  <!-- Main chat area -->
-  <main class="chat-area">
-    <header>
-      <span>Polyconomy-AI</span>
-      <div class="user">
-        <span class="heading-username">{{ user.name || user.username }}</span>
-        <div class="language-dropdown">
-        <button class="btn">Translate</button>
-          <div class="dropdown-menu">
-              <button (click)="translate('en')">English</button>
-              <button (click)="translate('es')">Spanish</button>
-              <button (click)="translate('fr')">French</button>
-              <button (click)="translate('de')">German</button>
-              <button (click)="translate('zh-CN')">Chinese</button>
-            </div>
-      </div>
-          
-        <button class="signout-btn" (click)="auth.logout()">Sign out</button>
-      </div>
-    </header>
-
-     <!-- Overlay -->
-    <div 
-      class="side-overlay" 
-      [class.show]="isPanelOpen"
-      (click)="closePanel()">
-    </div>
-
-    <!-- Sliding Panel -->
-    <div class="info-panel" [class.open]="isPanelOpen">
-      <div class="panel-content">
-        <span class="close-btn" (click)="closePanel()">✕</span>
-
-        <div *ngIf="panelType === 'contact'">
-          <h2>Contact Us</h2>
-          <p>Email: support@example.com</p>
-          <p>Phone: +1 234 567 890</p>
-        </div>
-
-        <div *ngIf="panelType === 'about'">
-          <h2>About Us</h2>
-          <p>We are a modern messaging platform focused on real-time communication.</p>
-          <p>Version: 1.0.0</p>
-        </div>
-
-      </div>
-    </div>
-
-    <div class="messages" #messagesContainer>
-  <div *ngFor="let msg of currentChat?.messages" [ngClass]="msg.sender">
-    <span class="message-text">{{ msg.text }}</span>
-  </div>
-</div>
-
-
-    <footer>
-    <div class="input-wrapper">
-      <textarea 
-        [(ngModel)]="newMessage"
-        (keydown)="handleKey($event)"
-        (input)="autoResize($event)"
-        placeholder="Type your question..."
-        rows="1"
-      ></textarea>
-    </div>
-    <button (click)="sendMessage()">Send</button>
-  </footer>
-
-
-  </main>
-
-  <!-- Delete Confirmation Modal -->
-<div class="modal-backdrop" *ngIf="showDeleteModal">
-  <div class="modal">
-    <h2>Delete Chat?</h2>
-    <p>Are you sure you want to delete this chat? This action cannot be undone.</p>
-    <div class="modal-actions">
-      <button class="cancel" (click)="closeDeleteModal()">Cancel</button>
-      <button class="delete" (click)="confirmDeleteChat()">Delete</button>
-    </div>
-  </div>
-</div>
-
-</div>
-
