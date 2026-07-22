@@ -1,91 +1,72 @@
 <div class="app-layout">
   <!-- Sidebar -->
-  <aside class="sidebar">
+  <aside class="sidebar" [class.collapsed]="!sidebarOpen">
     <!-- GUEST MODE -->
-      <div class="sidebar-sign-in">
-        <div class="sign-in-box">
-      <h1>Sign in</h1>
+    <div class="sidebar-sign-in">
+      <div class="sign-in-box">
+        <h1>Sign in</h1>
         <h3>to continue</h3>
-      <p>
-        Save your conversations, pick up where you left off on any device, and get the most out of Polyconomy.
-      </p>
-      <div class="user">
-        <button class="signin-btn" (click)="goToSignIn()">Sign In</button>
-        <!-- <button class="signup-btn" (click)="goToSignUp()">Sign Up</button> -->
-
-      </div> 
+        <p>
+          Save your conversations, pick up where you left off on any device, and get the most out of Polyconomy.
+        </p>
+        <div class="user">
+          <button class="signin-btn" (click)="goToSignIn()">Sign In</button>
+        </div>
       </div>
-      
-        <!-- Bottom Logos -->
-        <div class="developed-by">
+
+      <!-- Bottom Logos -->
+      <div class="developed-by">
         <div class="logo-block">
-          <a href="https://www.buckingham.ac.uk/" target="_blank" rel="noopener noreferrer"><img 
+          <a href="https://www.buckingham.ac.uk/" target="_blank" rel="noopener noreferrer"><img
             src="/static/frontend/assets/light-mode/UniLogoLightMode.png"
             alt="University Logo"
             class="university-logo"></a>
         </div>
 
         <div class="logo-block">
-          <a href="https://vinsoncentre.com/" target="_blank" rel="noopener noreferrer"><img 
+          <a href="https://vinsoncentre.com/" target="_blank" rel="noopener noreferrer"><img
             src="/static/frontend/assets/light-mode/VinsonLogoLightMode.png"
             alt="Collaboration Logo"
-            class="colab-logo"
-            ></a>
+            class="colab-logo"></a>
         </div>
-      </div> 
-
+      </div>
     </div>
-        
-
-
-    <!-- <h3 *ngIf="chats.length > 0">Chats</h3>
-    <ul *ngIf="chats.length > 0">
-      <li *ngFor="let chat of chats" [class.active]="currentChat?.chat_id === chat.chat_id">
-        <span class="chat-title" (click)="selectChat(chat)">{{ chat.title }}</span>
-
-        <div class="chat-options-container">
-          <span class="dots" (click)="toggleOptions(chat, $event)">⋯</span>
-
-          
-          <div class="chat-options" *ngIf="chat.showOptions">
-            <button class="chat-btn" (click)="deleteChat(chat)">Delete</button>
-          </div>
-        </div>
-      </li>
-    </ul> -->
-    <!-- <button class="new-chat-btn" (click)="createNewChat()">+ Start New Chat</button> -->
-    
   </aside>
 
   <!-- Main chat area -->
   <main class="chat-area">
     <header>
-      <span>Polyconomy (Guest)</span>
-      <!-- <div class="user">
-        <button class="signin-btn" (click)="goToSignIn()">Sign In</button>
-      </div> -->
-     <div class="aboutcontact">
-
-        <div class="language-dropdown">
-    <button class="btn">Translate</button>
-
-      <div class="dropdown-menu">
-          <button (click)="translate('en')">English</button>
-          <button (click)="translate('es')">Spanish</button>
-          <button (click)="translate('fr')">French</button>
-          <button (click)="translate('de')">German</button>
-          <button (click)="translate('zh-CN')">Chinese</button>
-        </div>
+      <div class="header-left">
+        <button class="icon-btn" (click)="toggleSidebar()" aria-label="Toggle sidebar">
+          <lucide-icon [img]="icons.Menu" size="20"></lucide-icon>
+        </button>
+        <span class="app-title">Polyconomy (Guest)</span>
       </div>
-         
-      <button class="btn" (click)="openPanel('contact')">Contact Us</button>
-      <button class="btn" (click)="openPanel('about')">About Us</button>
-    </div>
+
+      <div class="header-actions">
+        <div class="language-dropdown">
+          <button class="pill-btn">
+            <lucide-icon [img]="icons.Globe" size="16"></lucide-icon>
+            Translate
+          </button>
+          <div class="dropdown-menu">
+            <button (click)="translate('en')">English</button>
+            <button (click)="translate('es')">Spanish</button>
+            <button (click)="translate('fr')">French</button>
+            <button (click)="translate('de')">German</button>
+            <button (click)="translate('zh-CN')">Chinese</button>
+          </div>
+        </div>
+
+        <button class="pill-btn" (click)="openPanel('contact')">Contact Us</button>
+        <button class="pill-btn" (click)="openPanel('about')">About Us</button>
+        <button class="pill-btn primary" (click)="goToSignIn()">Sign In</button>
+      </div>
     </header>
 
     <!-- Overlay -->
-    <div 
-      class="side-overlay" 
+    <div
+      class="side-overlay"
       [class.show]="isPanelOpen"
       (click)="closePanel()">
     </div>
@@ -106,29 +87,45 @@
           <p>We are a modern messaging platform focused on real-time communication.</p>
           <p>Version: 1.0.0</p>
         </div>
-
       </div>
     </div>
 
     <div class="messages" #messagesContainer>
-      <div *ngFor="let msg of currentChat?.messages" [ngClass]="msg.sender">
-        <span class="message-text">{{ msg.text }}</span>
+      <div class="messages-inner">
+        <div *ngFor="let msg of currentChat?.messages" class="message-row" [ngClass]="msg.sender">
+          <!-- Typing indicator -->
+          <div *ngIf="msg.typing" class="bubble ai typing">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+          </div>
+
+          <!-- Normal message -->
+          <div *ngIf="!msg.typing" class="bubble" [ngClass]="msg.sender">
+            <span class="message-text">{{ msg.text }}</span>
+            <span class="timestamp" *ngIf="msg.timestamp">{{ msg.timestamp | date: 'shortTime' }}</span>
+          </div>
+        </div>
       </div>
     </div>
 
     <footer>
-    <div class="input-wrapper">
-      <textarea 
-        [(ngModel)]="newMessage"
-        (keydown)="handleKey($event)"
-        (input)="autoResize($event)"
-        placeholder="Type your question..."
-        rows="1"
-      ></textarea>
-    </div>
-    <button (click)="sendMessage()">Send</button>
-  </footer>
-
+      <div class="input-shell">
+        <div class="input-wrapper">
+          <textarea
+            [(ngModel)]="newMessage"
+            (keydown)="handleKey($event)"
+            (input)="autoResize($event)"
+            placeholder="Type your question..."
+            rows="1"
+          ></textarea>
+          <button class="send-btn" (click)="sendMessage()" [disabled]="!newMessage.trim()" aria-label="Send">
+            <lucide-icon [img]="icons.Send" size="18"></lucide-icon>
+          </button>
+        </div>
+        <p class="input-hint">Press Enter to send, Shift+Enter for a new line</p>
+      </div>
+    </footer>
   </main>
 
   <!-- Delete Confirmation Modal -->
@@ -143,7 +140,6 @@
     </div>
   </div>
 
-  <!-- Message Limit Modal -->
   <!-- Message Limit Modal -->
   <div class="modal-backdrop" *ngIf="showLimitModal">
     <div class="modal">

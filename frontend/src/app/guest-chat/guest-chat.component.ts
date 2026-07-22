@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
-import { Pin, Trash2, LogIn } from 'lucide-angular';
+import { Pin, Trash2, LogIn, Menu, Send, Globe, Lock } from 'lucide-angular';
 import { LandingComponent } from '../pages/landing/landing.component';
 import { App } from '../app';
 import { RagService } from '../services/rag.service';
@@ -11,6 +11,8 @@ import { RagService } from '../services/rag.service';
 interface Message {
   text: string;
   sender: 'user' | 'ai';
+  timestamp?: string;
+  typing?: boolean;
 }
 
 interface Chat {
@@ -34,7 +36,7 @@ export class GuestChatComponent implements OnInit {
   otherChats: Chat[] = [];
   currentChat: Chat | null = null;
   newMessage: string = '';
-  icons = { Pin, Trash2, LogIn };
+  icons = { Pin, Trash2, LogIn, Menu, Send, Globe, Lock };
 
   showDeleteModal: boolean = false;
   chatToDelete: Chat | null = null;
@@ -45,6 +47,7 @@ export class GuestChatComponent implements OnInit {
   showLimitModal: boolean = false;
   isPanelOpen: boolean = false;
   panelType: 'contact' | 'about' | null = null;
+  sidebarOpen: boolean = true;
 
   @ViewChild('messagesContainer') messagesContainer!: ElementRef;
   @ViewChild(LandingComponent) landingComponent!: LandingComponent;
@@ -64,6 +67,10 @@ export class GuestChatComponent implements OnInit {
 
   goToSignIn() {
     this.router.navigate(['/login']);
+  }
+
+  toggleSidebar() {
+    this.sidebarOpen = !this.sidebarOpen;
   }
 
   // ─── Sidebar / Chat Management ────────────────────────────────────────────
@@ -172,11 +179,11 @@ export class GuestChatComponent implements OnInit {
     }
 
     const text = this.newMessage;
-    this.currentChat.messages.push({ text, sender: 'user' });
+    this.currentChat.messages.push({ text, sender: 'user', timestamp: new Date().toISOString() });
     this.scrollToBottom();
     this.newMessage = '';
 
-    const typingMessage: any = { text: 'Typing...', sender: 'ai' };
+    const typingMessage: Message = { text: 'Typing...', sender: 'ai', typing: true };
     this.currentChat.messages.push(typingMessage);
     this.scrollToBottom();
 
@@ -217,7 +224,7 @@ export class GuestChatComponent implements OnInit {
   }
 
   addAIMessage(chat: Chat, text: string) {
-    const aiMessage: Message = { text, sender: 'ai' };
+    const aiMessage: Message = { text, sender: 'ai', timestamp: new Date().toISOString() };
     chat.messages.push(aiMessage);
     this.scrollToBottom();
   }
