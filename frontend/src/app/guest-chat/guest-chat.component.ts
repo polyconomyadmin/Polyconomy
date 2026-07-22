@@ -54,8 +54,6 @@ export class GuestChatComponent implements OnInit {
   otherCollapsed: boolean = false;
 
   showLimitModal: boolean = false;
-  isPanelOpen: boolean = false;
-  panelType: 'contact' | 'about' | null = null;
   sidebarOpen: boolean = true;
 
   @ViewChild('messagesContainer') messagesContainer!: ElementRef;
@@ -163,16 +161,14 @@ export class GuestChatComponent implements OnInit {
     this.closeDeleteModal();
   }
 
-  // ─── Panels ───────────────────────────────────────────────────────────────
+  // ─── About / Contact navigation ────────────────────────────────────────────
 
-  openPanel(type: 'contact' | 'about') {
-    this.panelType = type;
-    this.isPanelOpen = true;
+  goToAbout() {
+    this.router.navigate(['/about']);
   }
 
-  closePanel() {
-    this.isPanelOpen = false;
-    setTimeout(() => { this.panelType = null; }, 300);
+  goToContact() {
+    this.router.navigate(['/contact']);
   }
 
   // ─── Limit Modal ──────────────────────────────────────────────────────────

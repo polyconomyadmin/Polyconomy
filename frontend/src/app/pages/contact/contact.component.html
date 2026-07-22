@@ -1,0 +1,46 @@
+<div class="page">
+  <header class="page-header">
+    <a class="back-btn" routerLink="/" aria-label="Back">
+      <lucide-icon [img]="icons.ArrowLeft" size="20"></lucide-icon>
+    </a>
+    <h1>Contact Us</h1>
+  </header>
+
+  <div class="content">
+    <ng-container *ngIf="!sent">
+      <h2>Get in Touch</h2>
+      <p class="lede">Have a question or feedback? Send us a message.</p>
+
+      <form (ngSubmit)="submit()" novalidate>
+        <label>
+          Name
+          <input type="text" required [(ngModel)]="form.name" name="name" />
+        </label>
+        <label>
+          Email
+          <input type="email" required [(ngModel)]="form.email" name="email" />
+        </label>
+        <label>
+          Subject
+          <input type="text" required [(ngModel)]="form.subject" name="subject" />
+        </label>
+        <label>
+          Message
+          <textarea required rows="5" [(ngModel)]="form.message" name="message"></textarea>
+        </label>
+
+        <button type="submit" class="primary-btn">
+          <lucide-icon [img]="icons.Send" size="16"></lucide-icon>
+          Send Message
+        </button>
+      </form>
+    </ng-container>
+
+    <div class="sent-state" *ngIf="sent">
+      <lucide-icon [img]="icons.CheckCircle" size="56" class="check"></lucide-icon>
+      <h2>Message Sent</h2>
+      <p class="lede">Thank you for reaching out. We'll get back to you soon.</p>
+      <a class="primary-btn link" routerLink="/">Back to Chat</a>
+    </div>
+  </div>
+</div>

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { Pin, Trash2, Menu, Send, Globe, Copy, Share2, Volume2, RotateCcw, Pencil, Square, Plus } from 'lucide-angular';
 import { RagService } from '../../services/rag.service';
@@ -47,8 +48,6 @@ export class ChatComponent implements OnInit {
   pinnedCollapsed: boolean = false;
   otherCollapsed: boolean = false;
 
-  isPanelOpen: boolean = false;
-  panelType: 'contact' | 'about' | null = null;
   sidebarOpen: boolean = true;
 
   // Streaming state (Base44-style word-by-word reveal)
@@ -63,7 +62,8 @@ export class ChatComponent implements OnInit {
     public auth: AuthService,
     private http: HttpClient,
     private ragService: RagService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private router: Router
   ) {}
 
   ngOnInit() {
@@ -163,16 +163,14 @@ export class ChatComponent implements OnInit {
       });
   }
 
-  // ─── Panels ───────────────────────────────────────────────────────────────
+  // ─── About / Contact navigation ────────────────────────────────────────────
 
-  openPanel(type: 'contact' | 'about') {
-    this.panelType = type;
-    this.isPanelOpen = true;
+  goToAbout() {
+    this.router.navigate(['/about']);
   }
 
-  closePanel() {
-    this.isPanelOpen = false;
-    setTimeout(() => { this.panelType = null; }, 300);
+  goToContact() {
+    this.router.navigate(['/contact']);
   }
 
   // ─── Messaging ────────────────────────────────────────────────────────────
