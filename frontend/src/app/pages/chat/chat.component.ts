@@ -173,6 +173,10 @@ export class ChatComponent implements OnInit {
     this.router.navigate(['/contact']);
   }
 
+  goToSettings() {
+    this.router.navigate(['/settings']);
+  }
+
   // ─── Messaging ────────────────────────────────────────────────────────────
 
   async sendMessage() {

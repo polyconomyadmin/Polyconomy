@@ -75,7 +75,7 @@
 
         <button class="pill-btn" (click)="goToContact()">Contact Us</button>
         <button class="pill-btn" (click)="goToAbout()">About Us</button>
-        <span class="username" *ngIf="user?.name || user?.username">{{ user.name || user.username }}</span>
+        <button class="username" *ngIf="user?.name || user?.username" (click)="goToSettings()" title="Account settings">{{ user.name || user.username }}</button>
         <button class="pill-btn" (click)="auth.logout()">Sign Out</button>
       </div>
     </header>

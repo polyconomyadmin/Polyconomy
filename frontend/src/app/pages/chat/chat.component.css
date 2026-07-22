@@ -235,7 +235,17 @@ header {
   font-size: 14px;
   font-weight: 500;
   color: hsl(var(--muted-foreground));
-  padding: 0 4px;
+  padding: 6px 10px;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.username:hover {
+  background: hsl(var(--muted));
+  color: hsl(var(--foreground));
 }
 
 .pill-btn {

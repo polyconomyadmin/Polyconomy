@@ -1,0 +1,54 @@
+<div class="page">
+  <header class="page-header">
+    <a class="back-btn" routerLink="/chat" aria-label="Back">
+      <lucide-icon [img]="icons.ArrowLeft" size="20"></lucide-icon>
+    </a>
+    <h1>Account Settings</h1>
+  </header>
+
+  <div class="content">
+    <!-- Profile -->
+    <section class="card">
+      <h2>Profile</h2>
+      <div class="rows">
+        <div class="row"><span class="label">Name</span><span class="value">{{ user?.name || user?.username || '—' }}</span></div>
+        <div class="row"><span class="label">Email</span><span class="value">{{ user?.email || '—' }}</span></div>
+        <div class="row"><span class="label">Account Type</span><span class="value cap">{{ accountType }}</span></div>
+        <div class="row"><span class="label">Current Plan</span><span class="value cap">{{ currentPlan }}</span></div>
+      </div>
+    </section>
+
+    <!-- Plans -->
+    <section class="card">
+      <h2>Upgrade Your Plan</h2>
+      <div class="plans">
+        <div class="plan" *ngFor="let plan of plans" [class.current]="currentPlan === plan.id">
+          <div class="plan-head">
+            <h3>{{ plan.name }}</h3>
+            <lucide-icon *ngIf="currentPlan === plan.id" [img]="icons.Check" size="16" class="plan-check"></lucide-icon>
+          </div>
+          <p class="price">{{ plan.price }}</p>
+          <ul>
+            <li *ngFor="let f of plan.features">
+              <lucide-icon [img]="icons.Check" size="14" class="feat-check"></lucide-icon>
+              {{ f }}
+            </li>
+          </ul>
+          <button *ngIf="currentPlan !== plan.id" class="upgrade-btn" (click)="choosePlan(plan)">
+            {{ plan.id === 'institute' ? 'Contact Sales' : 'Upgrade' }}
+          </button>
+          <span *ngIf="currentPlan === plan.id" class="current-tag">Current plan</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sign out -->
+    <section class="card signout-card">
+      <div>
+        <h2>Sign Out</h2>
+        <p class="muted">Sign out of your account</p>
+      </div>
+      <button class="signout-btn" (click)="auth.logout()">Sign Out</button>
+    </section>
+  </div>
+</div>
