@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en" data-beasties-container><head><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+export default `<!DOCTYPE html><html lang="en" data-beasties-container><head><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <meta charset="utf-8">
   <title>Frontend</title>
   <base href="/">
@@ -36,4 +36,4 @@ function googleTranslateElementInit() {
 
 <script src="/static/frontend/main-AYW5SOCU.js" type="module"></script>
 
-</body></html>
+</body></html>`;
