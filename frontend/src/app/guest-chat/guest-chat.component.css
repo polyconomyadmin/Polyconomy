@@ -463,6 +463,14 @@ footer textarea {
   cursor: default;
 }
 
+.send-btn.stop {
+  background: hsl(var(--foreground));
+}
+
+.send-btn.stop:hover:not(:disabled) {
+  background: hsl(var(--foreground) / 0.8);
+}
+
 .input-hint {
   text-align: center;
   font-size: 12px;

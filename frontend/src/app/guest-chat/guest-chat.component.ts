@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
-import { Pin, Trash2, LogIn, Menu, Send, Globe, Lock, Copy, Share2, Volume2, RotateCcw, Pencil } from 'lucide-angular';
+import { Pin, Trash2, LogIn, Menu, Send, Globe, Lock, Copy, Share2, Volume2, RotateCcw, Pencil, Square } from 'lucide-angular';
 import { LandingComponent } from '../pages/landing/landing.component';
 import { App } from '../app';
 import { RagService } from '../services/rag.service';
@@ -39,7 +39,13 @@ export class GuestChatComponent implements OnInit {
   otherChats: Chat[] = [];
   currentChat: Chat | null = null;
   newMessage: string = '';
-  icons = { Pin, Trash2, LogIn, Menu, Send, Globe, Lock, Copy, Share2, Volume2, RotateCcw, Pencil };
+  icons = { Pin, Trash2, LogIn, Menu, Send, Globe, Lock, Copy, Share2, Volume2, RotateCcw, Pencil, Square };
+
+  // Streaming state (Base44-style word-by-word reveal)
+  isGenerating = false;
+  streamingText = '';
+  private streamTimer: any = null;
+  private cancelStream = false;
 
   showDeleteModal: boolean = false;
   chatToDelete: Chat | null = null;
@@ -178,7 +184,7 @@ export class GuestChatComponent implements OnInit {
   // ─── Messaging ────────────────────────────────────────────────────────────
 
   async sendMessage() {
-    if (!this.newMessage.trim() || !this.currentChat) return;
+    if (!this.newMessage.trim() || !this.currentChat || this.isGenerating) return;
 
     const userMsgCount = this.currentChat.messages.filter(m => m.sender === 'user').length;
     if (userMsgCount >= 5) {
@@ -193,48 +199,85 @@ export class GuestChatComponent implements OnInit {
   }
 
   /**
-   * Sends a question to the RAG service and appends the reply. Kept separate
+   * Sends a question to the RAG service and streams the reply. Kept separate
    * from sendMessage so "Try again" and "Edit" can regenerate a response
-   * without adding another user bubble.
+   * without adding another user bubble. While waiting, isGenerating shows the
+   * typing dots; once the text arrives it is revealed word-by-word.
    */
   async askRag(text: string) {
     if (!this.currentChat) return;
-    this.scrollToBottom();
-
-    const typingMessage: Message = { text: 'Typing...', sender: 'ai', typing: true };
-    this.currentChat.messages.push(typingMessage);
+    this.isGenerating = true;
+    this.streamingText = '';
+    this.cancelStream = false;
     this.cdr.markForCheck();
     this.scrollToBottom();
 
     // Single detect call gives us the language AND the English translation for free
     const { lang: langToUse, translatedToEn } = await this.detectLanguage(text);
+    if (this.cancelStream) return;
     console.log('[askRag] lang:', langToUse, '| query to RAG:', translatedToEn);
 
     this.ragService.queryRag(translatedToEn).subscribe({
       next: async (res) => {
-        const index = this.currentChat!.messages.indexOf(typingMessage);
-        if (index > -1) this.currentChat!.messages.splice(index, 1);
-
+        if (this.cancelStream) return;
         let aiResponse = res.response;
         if (langToUse !== 'en') {
           aiResponse = await this.translateText(aiResponse, langToUse);
         }
-
-        this.addAIMessage(this.currentChat!, aiResponse);
+        if (this.cancelStream) return;
+        this.streamResponse(aiResponse);
       },
       error: async (err) => {
-        const index = this.currentChat!.messages.indexOf(typingMessage);
-        if (index > -1) this.currentChat!.messages.splice(index, 1);
-
+        console.error('[askRag] RAG error:', err);
+        if (this.cancelStream) return;
         let errorMsg = 'Sorry, something went wrong.';
         if (langToUse !== 'en') {
           errorMsg = await this.translateText(errorMsg, langToUse);
         }
-
-        this.addAIMessage(this.currentChat!, errorMsg);
-        console.error('[askRag] RAG error:', err);
+        if (this.cancelStream) return;
+        this.streamResponse(errorMsg);
       }
     });
+  }
+
+  /** Reveals the reply one word at a time, then commits it as a message. */
+  private streamResponse(fullText: string) {
+    const words = fullText.split(' ');
+    let i = 0;
+    this.streamTimer = setInterval(() => {
+      if (this.cancelStream || i >= words.length) {
+        clearInterval(this.streamTimer);
+        this.streamTimer = null;
+        const finalText = this.cancelStream ? (this.streamingText || '…') : fullText;
+        this.streamingText = '';
+        this.isGenerating = false;
+        this.addAIMessage(this.currentChat!, finalText);
+        this.cdr.markForCheck();
+        return;
+      }
+      i++;
+      this.streamingText = words.slice(0, i).join(' ');
+      this.cdr.markForCheck();
+      this.scrollToBottom();
+    }, 35);
+  }
+
+  /** Stops generation: finalises whatever has streamed so far. */
+  handleStop() {
+    this.cancelStream = true;
+    if (this.streamTimer) {
+      clearInterval(this.streamTimer);
+      this.streamTimer = null;
+      const partial = this.streamingText || '…';
+      this.streamingText = '';
+      this.isGenerating = false;
+      this.addAIMessage(this.currentChat!, partial);
+    } else {
+      // Still waiting on the backend — just drop the pending request.
+      this.isGenerating = false;
+      this.streamingText = '';
+    }
+    this.cdr.markForCheck();
   }
 
   // ─── Message actions (copy / share / read-aloud / edit / try-again) ────────

@@ -93,15 +93,8 @@
     <div class="messages" #messagesContainer>
       <div class="messages-inner">
         <div *ngFor="let msg of currentChat?.messages; let i = index" class="message-row" [ngClass]="msg.sender">
-          <!-- Typing indicator -->
-          <div *ngIf="msg.typing" class="bubble ai typing">
-            <span class="dot"></span>
-            <span class="dot"></span>
-            <span class="dot"></span>
-          </div>
-
           <!-- Message + actions -->
-          <div *ngIf="!msg.typing" class="message-block">
+          <div class="message-block">
             <!-- Inline edit (user messages) -->
             <div *ngIf="msg.editing" class="edit-box">
               <textarea [(ngModel)]="msg.editText" rows="2" (keydown.enter)="$event.preventDefault(); saveEdit(msg, i)"></textarea>
@@ -146,6 +139,24 @@
             </ng-container>
           </div>
         </div>
+
+        <!-- Waiting for the backend (typing dots) -->
+        <div *ngIf="isGenerating && !streamingText" class="message-row ai">
+          <div class="bubble ai typing">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+          </div>
+        </div>
+
+        <!-- Streaming reply (revealed word-by-word) -->
+        <div *ngIf="isGenerating && streamingText" class="message-row ai">
+          <div class="message-block">
+            <div class="bubble ai">
+              <span class="message-text">{{ streamingText }}</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -159,8 +170,11 @@
             placeholder="Type your question..."
             rows="1"
           ></textarea>
-          <button class="send-btn" (click)="sendMessage()" [disabled]="!newMessage.trim()" aria-label="Send">
+          <button *ngIf="!isGenerating" class="send-btn" (click)="sendMessage()" [disabled]="!newMessage.trim()" aria-label="Send">
             <lucide-icon [img]="icons.Send" size="18"></lucide-icon>
+          </button>
+          <button *ngIf="isGenerating" class="send-btn stop" (click)="handleStop()" aria-label="Stop">
+            <lucide-icon [img]="icons.Square" size="16"></lucide-icon>
           </button>
         </div>
         <p class="input-hint">Press Enter to send, Shift+Enter for a new line</p>
