@@ -92,7 +92,7 @@
 
     <div class="messages" #messagesContainer>
       <div class="messages-inner">
-        <div *ngFor="let msg of currentChat?.messages" class="message-row" [ngClass]="msg.sender">
+        <div *ngFor="let msg of currentChat?.messages; let i = index" class="message-row" [ngClass]="msg.sender">
           <!-- Typing indicator -->
           <div *ngIf="msg.typing" class="bubble ai typing">
             <span class="dot"></span>
@@ -100,10 +100,50 @@
             <span class="dot"></span>
           </div>
 
-          <!-- Normal message -->
-          <div *ngIf="!msg.typing" class="bubble" [ngClass]="msg.sender">
-            <span class="message-text">{{ msg.text }}</span>
-            <span class="timestamp" *ngIf="msg.timestamp">{{ msg.timestamp | date: 'shortTime' }}</span>
+          <!-- Message + actions -->
+          <div *ngIf="!msg.typing" class="message-block">
+            <!-- Inline edit (user messages) -->
+            <div *ngIf="msg.editing" class="edit-box">
+              <textarea [(ngModel)]="msg.editText" rows="2" (keydown.enter)="$event.preventDefault(); saveEdit(msg, i)"></textarea>
+              <div class="edit-actions">
+                <button class="edit-cancel" (click)="cancelEdit(msg)">Cancel</button>
+                <button class="edit-save" (click)="saveEdit(msg, i)">Save &amp; resend</button>
+              </div>
+            </div>
+
+            <!-- Normal bubble + action row -->
+            <ng-container *ngIf="!msg.editing">
+              <div class="bubble" [ngClass]="msg.sender">
+                <span class="message-text">{{ msg.text }}</span>
+                <span class="timestamp" *ngIf="msg.timestamp">{{ msg.timestamp | date: 'shortTime' }}</span>
+              </div>
+
+              <div class="message-actions" [ngClass]="msg.sender">
+                <ng-container *ngIf="msg.sender === 'ai'">
+                  <button class="action-btn" (click)="copyMessage(msg.text)" title="Copy" aria-label="Copy">
+                    <lucide-icon [img]="icons.Copy" size="15"></lucide-icon>
+                  </button>
+                  <button class="action-btn" (click)="shareMessage(msg.text)" title="Share" aria-label="Share">
+                    <lucide-icon [img]="icons.Share2" size="15"></lucide-icon>
+                  </button>
+                  <button class="action-btn" [class.active]="msg.speaking" (click)="toggleReadAloud(msg)" title="Read aloud" aria-label="Read aloud">
+                    <lucide-icon [img]="icons.Volume2" size="15"></lucide-icon>
+                  </button>
+                  <button class="action-btn" *ngIf="i > 0" (click)="tryAgain(i)" title="Try again" aria-label="Try again">
+                    <lucide-icon [img]="icons.RotateCcw" size="15"></lucide-icon>
+                  </button>
+                </ng-container>
+
+                <ng-container *ngIf="msg.sender === 'user'">
+                  <button class="action-btn" (click)="copyMessage(msg.text)" title="Copy" aria-label="Copy">
+                    <lucide-icon [img]="icons.Copy" size="15"></lucide-icon>
+                  </button>
+                  <button class="action-btn" (click)="startEdit(msg)" title="Edit" aria-label="Edit">
+                    <lucide-icon [img]="icons.Pencil" size="15"></lucide-icon>
+                  </button>
+                </ng-container>
+              </div>
+            </ng-container>
           </div>
         </div>
       </div>

@@ -217,11 +217,25 @@ header {
   justify-content: flex-start;
 }
 
+.message-block {
+  display: flex;
+  flex-direction: column;
+  max-width: 80%;
+}
+
+.message-row.user .message-block {
+  align-items: flex-end;
+}
+
+.message-row.ai .message-block {
+  align-items: flex-start;
+}
+
 .bubble {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  max-width: 80%;
+  max-width: 100%;
   padding: 10px 16px;
   font-size: 15px;
   line-height: 1.5;
@@ -280,6 +294,99 @@ header {
 @keyframes typing-bounce {
   0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
   30% { transform: translateY(-6px); opacity: 1; }
+}
+
+/* Per-message action row (copy / share / read-aloud / edit / try-again) */
+.message-actions {
+  display: flex;
+  gap: 2px;
+  margin-top: 4px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.message-row:hover .message-actions,
+.message-actions:focus-within {
+  opacity: 1;
+}
+
+.action-btn {
+  background: none;
+  border: none;
+  padding: 5px;
+  border-radius: 6px;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.action-btn:hover {
+  background: hsl(var(--muted));
+  color: hsl(var(--foreground));
+}
+
+.action-btn.active {
+  color: hsl(var(--primary));
+}
+
+/* Inline edit box for user messages */
+.edit-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  min-width: 280px;
+}
+
+.edit-box textarea {
+  width: 100%;
+  border: 1px solid hsl(var(--primary));
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-family: inherit;
+  font-size: 15px;
+  line-height: 1.5;
+  resize: vertical;
+  outline: none;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.12);
+}
+
+.edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.edit-actions button {
+  border-radius: 9999px;
+  padding: 7px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background 0.15s ease;
+}
+
+.edit-actions .edit-cancel {
+  background: hsl(var(--secondary));
+  color: hsl(var(--secondary-foreground));
+}
+
+.edit-actions .edit-cancel:hover {
+  background: hsl(var(--accent));
+}
+
+.edit-actions .edit-save {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
+.edit-actions .edit-save:hover {
+  background: hsl(210 100% 45%);
 }
 
 /* --- Footer / Input --- */

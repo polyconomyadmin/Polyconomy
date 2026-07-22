@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
-import { Pin, Trash2, LogIn, Menu, Send, Globe, Lock } from 'lucide-angular';
+import { Pin, Trash2, LogIn, Menu, Send, Globe, Lock, Copy, Share2, Volume2, RotateCcw, Pencil } from 'lucide-angular';
 import { LandingComponent } from '../pages/landing/landing.component';
 import { App } from '../app';
 import { RagService } from '../services/rag.service';
@@ -13,6 +13,9 @@ interface Message {
   sender: 'user' | 'ai';
   timestamp?: string;
   typing?: boolean;
+  editing?: boolean;
+  editText?: string;
+  speaking?: boolean;
 }
 
 interface Chat {
@@ -36,7 +39,7 @@ export class GuestChatComponent implements OnInit {
   otherChats: Chat[] = [];
   currentChat: Chat | null = null;
   newMessage: string = '';
-  icons = { Pin, Trash2, LogIn, Menu, Send, Globe, Lock };
+  icons = { Pin, Trash2, LogIn, Menu, Send, Globe, Lock, Copy, Share2, Volume2, RotateCcw, Pencil };
 
   showDeleteModal: boolean = false;
   chatToDelete: Chat | null = null;
@@ -185,24 +188,30 @@ export class GuestChatComponent implements OnInit {
 
     const text = this.newMessage;
     this.currentChat.messages.push({ text, sender: 'user', timestamp: new Date().toISOString() });
-    this.scrollToBottom();
     this.newMessage = '';
+    this.askRag(text);
+  }
+
+  /**
+   * Sends a question to the RAG service and appends the reply. Kept separate
+   * from sendMessage so "Try again" and "Edit" can regenerate a response
+   * without adding another user bubble.
+   */
+  async askRag(text: string) {
+    if (!this.currentChat) return;
+    this.scrollToBottom();
 
     const typingMessage: Message = { text: 'Typing...', sender: 'ai', typing: true };
     this.currentChat.messages.push(typingMessage);
+    this.cdr.markForCheck();
     this.scrollToBottom();
 
     // Single detect call gives us the language AND the English translation for free
     const { lang: langToUse, translatedToEn } = await this.detectLanguage(text);
-    console.log('[sendMessage] lang:', langToUse, '| query to RAG:', translatedToEn);
+    console.log('[askRag] lang:', langToUse, '| query to RAG:', translatedToEn);
 
     this.ragService.queryRag(translatedToEn).subscribe({
       next: async (res) => {
-        console.log('[sendMessage] Full RAG res object:', JSON.stringify(res));
-        console.log('[sendMessage] res.response raw:', res.response);
-        console.log('[sendMessage] res.response type:', typeof res.response);
-        console.log('[sendMessage] Will translate?', langToUse !== 'en', '| lang:', langToUse);
-
         const index = this.currentChat!.messages.indexOf(typingMessage);
         if (index > -1) this.currentChat!.messages.splice(index, 1);
 
@@ -223,9 +232,73 @@ export class GuestChatComponent implements OnInit {
         }
 
         this.addAIMessage(this.currentChat!, errorMsg);
-        console.error('[sendMessage] RAG error:', err);
+        console.error('[askRag] RAG error:', err);
       }
     });
+  }
+
+  // ─── Message actions (copy / share / read-aloud / edit / try-again) ────────
+
+  copyMessage(text: string) {
+    navigator.clipboard?.writeText(text).catch(() => {});
+  }
+
+  async shareMessage(text: string) {
+    if (typeof navigator !== 'undefined' && (navigator as any).share) {
+      try {
+        await (navigator as any).share({ title: 'Polyconomy', text });
+      } catch { /* user cancelled */ }
+    } else {
+      this.copyMessage(text);
+    }
+  }
+
+  toggleReadAloud(msg: Message) {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+    if (msg.speaking) {
+      window.speechSynthesis.cancel();
+      msg.speaking = false;
+      return;
+    }
+    window.speechSynthesis.cancel();
+    this.currentChat?.messages.forEach(m => (m.speaking = false));
+    const utter = new SpeechSynthesisUtterance(msg.text);
+    utter.onend = () => {
+      msg.speaking = false;
+      this.cdr.markForCheck();
+    };
+    msg.speaking = true;
+    window.speechSynthesis.speak(utter);
+  }
+
+  tryAgain(index: number) {
+    if (!this.currentChat) return;
+    const userMsg = this.currentChat.messages[index - 1];
+    if (!userMsg || userMsg.sender !== 'user') return;
+    // Drop the old AI reply (and anything after it) then regenerate.
+    this.currentChat.messages = this.currentChat.messages.slice(0, index);
+    this.askRag(userMsg.text);
+  }
+
+  startEdit(msg: Message) {
+    msg.editText = msg.text;
+    msg.editing = true;
+  }
+
+  cancelEdit(msg: Message) {
+    msg.editing = false;
+  }
+
+  saveEdit(msg: Message, index: number) {
+    if (!this.currentChat) return;
+    const newText = (msg.editText ?? '').trim();
+    if (!newText) return;
+    msg.text = newText;
+    msg.editing = false;
+    msg.timestamp = new Date().toISOString();
+    // Keep messages up to and including the edited question, then regenerate.
+    this.currentChat.messages = this.currentChat.messages.slice(0, index + 1);
+    this.askRag(newText);
   }
 
   addAIMessage(chat: Chat, text: string) {
