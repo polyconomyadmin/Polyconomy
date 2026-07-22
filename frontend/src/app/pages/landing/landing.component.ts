@@ -160,15 +160,18 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { ActivatedRoute } from '@angular/router';
+import { LucideAngularModule } from 'lucide-angular';
+import { LogIn, UserPlus, Mail, Lock, User, ArrowLeft, GraduationCap, Briefcase, Building2, KeyRound, CheckCircle } from 'lucide-angular';
 
 @Component({
   selector: 'app-landing',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, LucideAngularModule],
   templateUrl: './landing.component.html',
   styleUrls: ['./landing.component.css'],
 })
 export class LandingComponent {
+  icons = { LogIn, UserPlus, Mail, Lock, User, ArrowLeft, GraduationCap, Briefcase, Building2, KeyRound, CheckCircle };
 
   // ---------------- FLOW STATE ----------------
   mode: 'login' | 'signup' = 'login';
