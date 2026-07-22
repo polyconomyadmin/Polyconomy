@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
@@ -51,7 +51,8 @@ export class ChatComponent implements OnInit {
   constructor(
     public auth: AuthService,
     private http: HttpClient,
-    private ragService: RagService
+    private ragService: RagService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
@@ -77,7 +78,10 @@ export class ChatComponent implements OnInit {
     chat.pinned = !chat.pinned;
     this.http
       .post(`${this.API}/chats/${this.user.username}/${chat.chat_id}/pin/`, { pinned: chat.pinned })
-      .subscribe(() => this.updateChatSections());
+      .subscribe(() => {
+        this.updateChatSections();
+        this.cdr.markForCheck();
+      });
     chat.showOptions = false;
   }
 
@@ -89,6 +93,7 @@ export class ChatComponent implements OnInit {
       this.chats = res.chats || [];
       this.updateChatSections();
       this.createNewChat(false);
+      this.cdr.markForCheck();
     });
   }
 
@@ -143,6 +148,7 @@ export class ChatComponent implements OnInit {
         }
 
         this.closeDeleteModal();
+        this.cdr.markForCheck();
       });
   }
 
@@ -216,6 +222,9 @@ export class ChatComponent implements OnInit {
   addAIMessage(chat: Chat, text: string) {
     const aiMessage: Message = { text, sender: 'ai' };
     chat.messages.push(aiMessage);
+    // App runs zoneless, so async updates (RAG response / error) must
+    // explicitly notify Angular to re-render the message list.
+    this.cdr.markForCheck();
     this.scrollToBottom();
 
     // Save AI message to backend

@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -52,7 +52,12 @@ export class GuestChatComponent implements OnInit {
   @ViewChild('messagesContainer') messagesContainer!: ElementRef;
   @ViewChild(LandingComponent) landingComponent!: LandingComponent;
 
-  constructor(private router: Router, private app: App, private ragService: RagService) {}
+  constructor(
+    private router: Router,
+    private app: App,
+    private ragService: RagService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit() {
     this.app.setFooterVisibility(false);
@@ -226,6 +231,9 @@ export class GuestChatComponent implements OnInit {
   addAIMessage(chat: Chat, text: string) {
     const aiMessage: Message = { text, sender: 'ai', timestamp: new Date().toISOString() };
     chat.messages.push(aiMessage);
+    // App runs zoneless, so async updates (RAG response / error) must
+    // explicitly notify Angular to re-render the message list.
+    this.cdr.markForCheck();
     this.scrollToBottom();
   }
 
