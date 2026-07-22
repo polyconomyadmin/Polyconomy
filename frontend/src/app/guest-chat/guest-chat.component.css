@@ -103,12 +103,12 @@
   align-items: center;
 }
 
-.university-logo,
+/* .university-logo,
 .colab-logo {
   height: 100%;
   width: auto;
   object-fit: contain;
-}
+} */
 
 /* --- Chat area --- */
 .chat-area {
