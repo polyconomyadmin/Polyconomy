@@ -171,6 +171,9 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
+RAG_SERVICE_URL = "https://jot-tropics-gulp.ngrok-free.dev"  # update each Colab restart
+RAG_API_KEY = "HX5ViUyDGJdNIwoHJElAhD3cSWGZeFD8"
+
 # -----------------------------
 # DATABASE (unused Django ORM)
 # -----------------------------
