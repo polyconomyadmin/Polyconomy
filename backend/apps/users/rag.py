@@ -16,6 +16,7 @@ settings.py:
     RAG_SERVICE_URL = "https://a1b2-34-56-78-90.ngrok-free.app"  # update each Colab restart
     RAG_API_KEY = "the-same-random-string-you-set-in-Colab"
 """
+RAG_API_KEY = "HX5ViUyDGJdNIwoHJElAhD3cSWGZeFD8"
 
 import requests
 from django.conf import settings
@@ -68,7 +69,8 @@ def query_rag_full(question: str) -> dict:
         response = requests.post(
             url,
             json={"question": question},
-            headers={"x-api-key": settings.RAG_API_KEY},
+            # headers={"x-api-key": settings.RAG_API_KEY},
+            headers={"x-api-key":"HX5ViUyDGJdNIwoHJElAhD3cSWGZeFD8"}
             timeout=180,
         )
         response.raise_for_status()
