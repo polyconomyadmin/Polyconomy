@@ -48,7 +48,7 @@ def query_rag(question: str) -> str:
             url,
             json={"question": question},
             headers=_headers(),
-            timeout=180,  # generation can be slow on CPU/free GPU
+            timeout=2000,  # generation can be slow on CPU/free GPU
         )
         response.raise_for_status()
         data = response.json()
