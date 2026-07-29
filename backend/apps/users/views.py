@@ -532,35 +532,64 @@ def delete_chat(request, username, chat_id):
 
 #     return JsonResponse({"error": "POST only"}, status=400)
 @csrf_exempt
-def rag_query(request):
+import threading
+
+from .models import RagQuery
+from .rag import query_rag_full  # add this alongside your existing query_rag import
+
+
+def _run_rag_query_in_background(task_id, question):
+    result = query_rag_full(question)
+
+    task = RagQuery.objects(id=task_id).first()
+    if not task:
+        return  # task record vanished somehow — nothing to update
+
+    task.status = "error" if result.get("answer", "").startswith("Error") else "done"
+    task.answer = result.get("answer", "")
+    task.sources = result.get("sources", [])
+    task.timings = result.get("timings", {})
+    task.updated_at = timezone.now()
+    task.save()
+
+
+@csrf_exempt
+def rag_query_submit(request):
     if request.method != "POST":
         return JsonResponse({"error": "POST only"}, status=400)
 
-    data = json.loads(request.body)
-    user_text = data.get("text", "")
+    try:
+        data = json.loads(request.body or "{}")
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON body"}, status=400)
 
-    result_holder = {}
+    question = (data.get("text") or "").strip()
+    if not question:
+        return JsonResponse({"error": "No question provided"}, status=400)
 
-    def _run():
-        result_holder["response"] = query_rag(user_text)
+    task = RagQuery(question=question, status="pending").save()
 
-    worker = threading.Thread(target=_run, daemon=True)
-    worker.start()
+    threading.Thread(
+        target=_run_rag_query_in_background,
+        args=(task.id, question),
+        daemon=True,
+    ).start()
 
-    def stream():
-        last_sent = time.time()
-        while worker.is_alive():
-            time.sleep(0.5)
-            if time.time() - last_sent > 10:
-                yield " "
-                last_sent = time.time()
-        worker.join()
-        yield json.dumps({"response": result_holder.get("response", "Error generating response")})
+    return JsonResponse({"task_id": str(task.id), "status": "pending"})
 
-    resp = StreamingHttpResponse(stream(), content_type="application/json")
-    resp["Cache-Control"] = "no-cache"
-    resp["X-Accel-Buffering"] = "no"
-    return resp
+
+def rag_query_status(request, task_id):
+    task = RagQuery.objects(id=task_id).first()
+    if not task:
+        return JsonResponse({"error": "Unknown task_id"}, status=404)
+
+    return JsonResponse({
+        "task_id": str(task.id),
+        "status": task.status,
+        "answer": task.answer,
+        "sources": task.sources,
+        "timings": task.timings,
+    })
 
 
 import threading

@@ -56,21 +56,18 @@ class User(me.Document):
         self.save()
 
 import uuid
-from django.db import models
+from django.utils import timezone
+from mongoengine import Document, StringField, ListField, DictField, UUIDField, DateTimeField
 
 
-class RagQuery(models.Model):
-    STATUS_CHOICES = [
-        ("pending", "Pending"),
-        ("done", "Done"),
-        ("error", "Error"),
-    ]
+class RagQuery(Document):
+    id = UUIDField(primary_key=True, default=uuid.uuid4)
+    question = StringField(required=True)
+    status = StringField(choices=("pending", "done", "error"), default="pending")
+    answer = StringField(default="")
+    sources = ListField(default=list)
+    timings = DictField(default=dict)
+    created_at = DateTimeField(default=timezone.now)
+    updated_at = DateTimeField(default=timezone.now)
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    question = models.TextField()
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="pending")
-    answer = models.TextField(blank=True, default="")
-    sources = models.JSONField(blank=True, default=list)
-    timings = models.JSONField(blank=True, default=dict)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    meta = {"collection": "rag_queries"}
