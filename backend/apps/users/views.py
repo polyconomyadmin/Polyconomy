@@ -307,6 +307,10 @@ from django.core.mail import send_mail
 from django.conf import settings
 from mongoengine.queryset.visitor import Q
 
+import threading
+import time
+from django.http import StreamingHttpResponse
+
 import uuid
 import json
 import traceback
@@ -527,23 +531,12 @@ def delete_chat(request, username, chat_id):
 #         return JsonResponse({"response": response_text})
 
 #     return JsonResponse({"error": "POST only"}, status=400)
-
-import json
-import threading
-import time
-
-from django.http import JsonResponse, StreamingHttpResponse
-from django.views.decorators.csrf import csrf_exempt
-
-from .rag import query_rag
-
-
 @csrf_exempt
 def rag_query(request):
     if request.method != "POST":
         return JsonResponse({"error": "POST only"}, status=400)
 
-    data = json.loads(request.body or "{}")
+    data = json.loads(request.body)
     user_text = data.get("text", "")
 
     result_holder = {}
@@ -555,24 +548,18 @@ def rag_query(request):
     worker.start()
 
     def stream():
-        # Send a whitespace keep-alive byte periodically while the RAG call
-        # is in flight. This resets Heroku's rolling window so the router
-        # never times the request out — the final JSON is unaffected since
-        # JSON.parse ignores leading/trailing whitespace.
         last_sent = time.time()
         while worker.is_alive():
             time.sleep(0.5)
             if time.time() - last_sent > 10:
                 yield " "
                 last_sent = time.time()
-
         worker.join()
-        payload = {"response": result_holder.get("response", "Error generating response")}
-        yield json.dumps(payload)
+        yield json.dumps({"response": result_holder.get("response", "Error generating response")})
 
     resp = StreamingHttpResponse(stream(), content_type="application/json")
     resp["Cache-Control"] = "no-cache"
-    resp["X-Accel-Buffering"] = "no"  # disable any intermediate proxy buffering
+    resp["X-Accel-Buffering"] = "no"
     return resp
 
 
