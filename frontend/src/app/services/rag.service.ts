@@ -41,16 +41,12 @@ export class RagService {
 
   constructor(private http: HttpClient) {}
 
-  queryRag(text: string): Observable<string> {
-  return this.http
-    .post<SubmitResponse>(
-      this.baseUrl,
-      { question: text },  // changed from `text`
-      { headers: { 'Content-Type': 'application/json' } }
-    )
-    .pipe(
-      switchMap(({ task_id }) => this.pollStatus(task_id))
-    );
+queryRag(text: string): Observable<{ response: string }> {
+  return this.http.post<{ response: string }>(
+    this.baseUrl,
+    { question: text },
+    { headers: { 'Content-Type': 'application/json' } }
+  );
 }
 
   private pollStatus(taskId: string): Observable<string> {

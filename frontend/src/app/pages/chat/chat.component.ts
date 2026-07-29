@@ -215,7 +215,7 @@ export class ChatComponent implements OnInit {
     this.ragService.queryRag(translatedToEn).subscribe({
       next: async (res) => {
         if (this.cancelStream) return;
-        let aiResponse = res;
+        let aiResponse = res.response;
         if (langToUse !== 'en') {
           aiResponse = await this.translateText(aiResponse, langToUse);
         }
