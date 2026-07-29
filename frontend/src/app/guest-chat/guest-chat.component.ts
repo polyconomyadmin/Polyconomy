@@ -26,6 +26,8 @@ interface Chat {
   showOptions?: boolean;
 }
 
+
+
 @Component({
   selector: 'app-guest-chat',
   standalone: true,
@@ -216,7 +218,7 @@ export class GuestChatComponent implements OnInit {
     this.ragService.queryRag(translatedToEn).subscribe({
       next: async (res) => {
         if (this.cancelStream) return;
-        let aiResponse = res.response;
+        let aiResponse = res;
         if (langToUse !== 'en') {
           aiResponse = await this.translateText(aiResponse, langToUse);
         }
