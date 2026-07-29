@@ -13,7 +13,7 @@ urlpatterns = [
     path("chats/<str:username>/<str:chat_id>/add/", add_message),
     path("chats/<str:username>/<str:chat_id>/delete/", delete_chat),
     path("chats/<str:username>/<str:chat_id>/pin/", pin_chat),
-    path("query/", views.rag_query),          # ← removed duplicate 'api/' prefix
+    # path("query/", views.rag_query_submit),       
     path('forgot-password/', forgot_password),
     path('reset-password/', reset_password),
     path("api/query/", views.rag_query_submit, name="rag_query_submit"),

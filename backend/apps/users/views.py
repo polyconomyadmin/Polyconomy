@@ -321,6 +321,10 @@ from django.core.mail import EmailMultiAlternatives
 import threading
 import time
 from django.http import StreamingHttpResponse
+import threading
+
+from .models import RagQuery
+from .rag import query_rag_full  # add this alongside your existing query_rag import
 
 logger = logging.getLogger(__name__)
 
@@ -532,12 +536,6 @@ def delete_chat(request, username, chat_id):
 
 #     return JsonResponse({"error": "POST only"}, status=400)
 @csrf_exempt
-import threading
-
-from .models import RagQuery
-from .rag import query_rag_full  # add this alongside your existing query_rag import
-
-
 def _run_rag_query_in_background(task_id, question):
     result = query_rag_full(question)
 
