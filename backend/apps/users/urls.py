@@ -16,6 +16,8 @@ urlpatterns = [
     path("query/", views.rag_query),          # ← removed duplicate 'api/' prefix
     path('forgot-password/', forgot_password),
     path('reset-password/', reset_password),
+    path("api/query/", views.rag_query_submit, name="rag_query_submit"),
+    path("api/query/<uuid:task_id>/status/", views.rag_query_status, name="rag_query_status"),
     # path("forgot-password/", views.forgot_password),   # ← was missing
     # path("reset-password/", views.reset_password),     # ← was missing
 ]

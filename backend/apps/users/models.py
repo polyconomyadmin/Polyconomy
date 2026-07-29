@@ -54,3 +54,23 @@ class User(me.Document):
         self.reset_token = None
         self.reset_token_expiry = None
         self.save()
+
+import uuid
+from django.db import models
+
+
+class RagQuery(models.Model):
+    STATUS_CHOICES = [
+        ("pending", "Pending"),
+        ("done", "Done"),
+        ("error", "Error"),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    question = models.TextField()
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="pending")
+    answer = models.TextField(blank=True, default="")
+    sources = models.JSONField(blank=True, default=list)
+    timings = models.JSONField(blank=True, default=dict)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
