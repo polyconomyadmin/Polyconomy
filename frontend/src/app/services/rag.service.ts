@@ -42,10 +42,12 @@ export class RagService {
   constructor(private http: HttpClient) {}
 
 queryRag(text: string): Observable<{ response: string }> {
-  return this.http.post<{ response: string }>(
+  return this.http.post<{ answer: string }>(
     this.baseUrl,
     { question: text },
     { headers: { 'Content-Type': 'application/json' } }
+  ).pipe(
+    map(res => ({ response: res.answer }))
   );
 }
 
