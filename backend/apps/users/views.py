@@ -535,21 +535,6 @@ def delete_chat(request, username, chat_id):
 #         return JsonResponse({"response": response_text})
 
 #     return JsonResponse({"error": "POST only"}, status=400)
-@csrf_exempt
-def _run_rag_query_in_background(task_id, question):
-    result = query_rag_full(question)
-
-    task = RagQuery.objects(id=task_id).first()
-    if not task:
-        return  # task record vanished somehow — nothing to update
-
-    task.status = "error" if result.get("answer", "").startswith("Error") else "done"
-    task.answer = result.get("answer", "")
-    task.sources = result.get("sources", [])
-    task.timings = result.get("timings", {})
-    task.updated_at = timezone.now()
-    task.save()
-
 
 @csrf_exempt
 def rag_query_submit(request):
@@ -618,49 +603,6 @@ def _run_rag_query_in_background(task_id: str, question: str):
     task.timings = result.get("timings", {})
     task.save()
 
-
-@csrf_exempt
-@require_http_methods(["POST"])
-def rag_query_submit(request):
-    question = request.POST.get("question") or request.body and _parse_json_question(request)
-    if not question:
-        return JsonResponse({"error": "No question provided"}, status=400)
-
-    task = RagQuery.objects.create(question=question, status="pending")
-
-    thread = threading.Thread(
-        target=_run_rag_query_in_background,
-        args=(str(task.id), question),
-        daemon=True,
-    )
-    thread.start()
-
-    # Returns in milliseconds — well under Heroku's 30s router limit.
-    return JsonResponse({"task_id": str(task.id), "status": "pending"})
-
-
-@require_http_methods(["GET"])
-def rag_query_status(request, task_id):
-    try:
-        task = RagQuery.objects.get(id=task_id)
-    except RagQuery.DoesNotExist:
-        return JsonResponse({"error": "Unknown task_id"}, status=404)
-
-    return JsonResponse({
-        "task_id": str(task.id),
-        "status": task.status,
-        "answer": task.answer,
-        "sources": task.sources,
-        "timings": task.timings,
-    })
-
-
-def _parse_json_question(request):
-    import json
-    try:
-        return json.loads(request.body).get("question")
-    except Exception:
-        return None
 
 # =========================
 # PASSWORD RESET

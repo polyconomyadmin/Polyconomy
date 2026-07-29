@@ -25,10 +25,11 @@ import { switchMap, map, filter, take } from 'rxjs/operators';
 
 interface SubmitResponse {
   task_id: string;
+  status: string;
 }
 
 interface StatusResponse {
-  status: 'pending' | 'processing' | 'done' | 'error';
+  status: 'pending' | 'done' | 'error';
   answer?: string;
 }
 
@@ -41,15 +42,16 @@ export class RagService {
 
   constructor(private http: HttpClient) {}
 
-queryRag(text: string): Observable<{ response: string }> {
-  return this.http.post<{ answer: string }>(
-    this.baseUrl,
-    { question: text },
-    { headers: { 'Content-Type': 'application/json' } }
-  ).pipe(
-    map(res => ({ response: res.answer }))
-  );
-}
+  queryRag(text: string): Observable<{ response: string }> {
+    return this.http.post<SubmitResponse>(
+      this.baseUrl,
+      { question: text },
+      { headers: { 'Content-Type': 'application/json' } }
+    ).pipe(
+      switchMap(submitRes => this.pollStatus(submitRes.task_id)),
+      map(answer => ({ response: answer }))
+    );
+  }
 
   private pollStatus(taskId: string): Observable<string> {
     return timer(0, this.pollIntervalMs).pipe(
@@ -63,10 +65,8 @@ queryRag(text: string): Observable<{ response: string }> {
         if (data.status === 'error') {
           return throwError(() => new Error(data.answer || 'RAG query failed'));
         }
-        // still pending/processing — filter it out so we keep polling
-        return [];
+        return []; // still pending — keep polling
       }),
-      // only "done" or an error passes through; keep listening otherwise
       filter((val): val is string => val !== undefined),
       take(1)
     );
