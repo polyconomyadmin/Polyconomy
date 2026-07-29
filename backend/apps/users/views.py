@@ -307,10 +307,6 @@ from django.core.mail import send_mail
 from django.conf import settings
 from mongoengine.queryset.visitor import Q
 
-import threading
-import time
-from django.http import StreamingHttpResponse
-
 import uuid
 import json
 import traceback
@@ -321,6 +317,10 @@ from .models import User, Chat, Message
 from .jwt_utils import create_jwt
 from .rag import query_rag
 from django.core.mail import EmailMultiAlternatives
+
+import threading
+import time
+from django.http import StreamingHttpResponse
 
 logger = logging.getLogger(__name__)
 
@@ -562,6 +562,78 @@ def rag_query(request):
     resp["X-Accel-Buffering"] = "no"
     return resp
 
+
+import threading
+from django.db import close_old_connections
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
+
+from .models import RagQuery
+from .rag import query_rag_full  # the corrected client from earlier
+
+
+def _run_rag_query_in_background(task_id: str, question: str):
+    # Each thread needs its own DB connection — reusing the request's
+    # connection across threads causes intermittent "connection already
+    # closed" errors once the original request finishes.
+    close_old_connections()
+
+    result = query_rag_full(question)  # this is the ~90s+ call
+
+    task = RagQuery.objects.get(id=task_id)
+    if result.get("answer", "").startswith("Error"):
+        task.status = "error"
+    else:
+        task.status = "done"
+    task.answer = result.get("answer", "")
+    task.sources = result.get("sources", [])
+    task.timings = result.get("timings", {})
+    task.save()
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def rag_query_submit(request):
+    question = request.POST.get("question") or request.body and _parse_json_question(request)
+    if not question:
+        return JsonResponse({"error": "No question provided"}, status=400)
+
+    task = RagQuery.objects.create(question=question, status="pending")
+
+    thread = threading.Thread(
+        target=_run_rag_query_in_background,
+        args=(str(task.id), question),
+        daemon=True,
+    )
+    thread.start()
+
+    # Returns in milliseconds — well under Heroku's 30s router limit.
+    return JsonResponse({"task_id": str(task.id), "status": "pending"})
+
+
+@require_http_methods(["GET"])
+def rag_query_status(request, task_id):
+    try:
+        task = RagQuery.objects.get(id=task_id)
+    except RagQuery.DoesNotExist:
+        return JsonResponse({"error": "Unknown task_id"}, status=404)
+
+    return JsonResponse({
+        "task_id": str(task.id),
+        "status": task.status,
+        "answer": task.answer,
+        "sources": task.sources,
+        "timings": task.timings,
+    })
+
+
+def _parse_json_question(request):
+    import json
+    try:
+        return json.loads(request.body).get("question")
+    except Exception:
+        return None
 
 # =========================
 # PASSWORD RESET
