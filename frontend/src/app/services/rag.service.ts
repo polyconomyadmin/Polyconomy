@@ -42,16 +42,16 @@ export class RagService {
   constructor(private http: HttpClient) {}
 
   queryRag(text: string): Observable<string> {
-    return this.http
-      .post<SubmitResponse>(
-        this.baseUrl,
-        { text },
-        { headers: { 'Content-Type': 'application/json' } }
-      )
-      .pipe(
-        switchMap(({ task_id }) => this.pollStatus(task_id))
-      );
-  }
+  return this.http
+    .post<SubmitResponse>(
+      this.baseUrl,
+      { question: text },  // changed from `text`
+      { headers: { 'Content-Type': 'application/json' } }
+    )
+    .pipe(
+      switchMap(({ task_id }) => this.pollStatus(task_id))
+    );
+}
 
   private pollStatus(taskId: string): Observable<string> {
     return timer(0, this.pollIntervalMs).pipe(
