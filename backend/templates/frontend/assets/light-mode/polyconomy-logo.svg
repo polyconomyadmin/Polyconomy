@@ -1,0 +1,34 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Low-poly gem mark -->
+  <g>
+    <!-- top-left facet -->
+    <polygon points="515,395 418,262 515,230" fill="#1c6b78"/>
+    <!-- top facet (center-top) -->
+    <polygon points="515,395 515,230 612,262" fill="#8fe3d6"/>
+    <!-- upper-right facet (lightest) -->
+    <polygon points="515,395 612,262 672,344" fill="#e3faf3"/>
+    <!-- right facet -->
+    <polygon points="515,395 672,344 672,446" fill="#35b2c9"/>
+    <!-- lower-right facet -->
+    <polygon points="515,395 672,446 612,528" fill="#1f8fd1"/>
+    <!-- bottom-right facet -->
+    <polygon points="515,395 612,528 515,560" fill="#1670b0"/>
+    <!-- bottom-left facet -->
+    <polygon points="515,395 515,560 418,528" fill="#123a5c"/>
+    <!-- lower-left facet (darkest) -->
+    <polygon points="515,395 418,528 358,446" fill="#0a2438"/>
+    <!-- left facet -->
+    <polygon points="515,395 358,446 358,344" fill="#0d3450"/>
+    <!-- upper-left facet -->
+    <polygon points="515,395 358,344 418,262" fill="#145868"/>
+  </g>
+
+  <!-- Wordmark -->
+  <text x="512" y="700"
+        font-family="'Poppins', 'Montserrat', 'Helvetica Neue', Arial, sans-serif"
+        font-weight="700"
+        font-size="92"
+        letter-spacing="4"
+        fill="#1e3a52"
+        text-anchor="middle">POLYCONOMY</text>
+</svg>
