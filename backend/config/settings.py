@@ -171,8 +171,15 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-RAG_SERVICE_URL = "https://jot-tropics-gulp.ngrok-free.dev"  # update each Colab restart
-RAG_API_KEY = "HX5ViUyDGJdNIwoHJElAhD3cSWGZeFD8"
+
+RAG_SERVICE_URL = os.environ.get("RAG_SERVICE_URL", "")
+RAG_API_KEY = os.environ.get("RAG_API_KEY", "")
+
+# Fail loudly at startup in production if these are missing, rather than
+# silently returning 401s/connection errors on every request.
+if not os.environ.get("DEBUG") and (not RAG_SERVICE_URL or not RAG_API_KEY):
+    import warnings
+    warnings.warn("RAG_SERVICE_URL or RAG_API_KEY is not set — RAG queries will fail.")
 
 # -----------------------------
 # DATABASE (unused Django ORM)
