@@ -25,6 +25,11 @@
   transition: background 0.15s ease;
 }
 
+/* lucide-icon is inline by default; its line box lifts the arrow above the title. */
+.back-btn lucide-icon {
+  display: flex;
+}
+
 .back-btn:hover {
   background: hsl(var(--muted));
 }
@@ -112,8 +117,19 @@ textarea:focus {
   transition: background 0.15s ease;
 }
 
-.primary-btn:hover {
+.primary-btn:hover:not(:disabled) {
   background: hsl(210 100% 45%);
+}
+
+.primary-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.form-error {
+  margin: 0;
+  font-size: 14px;
+  color: hsl(var(--destructive));
 }
 
 /* Success state */

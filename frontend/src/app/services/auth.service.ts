@@ -40,7 +40,8 @@ export class AuthService {
   }
 
   isAuthenticated(): boolean {
-    return !!localStorage.getItem(this.TOKEN_KEY);
+    // localStorage doesn't exist during server-side prerendering.
+    return typeof localStorage !== 'undefined' && !!localStorage.getItem(this.TOKEN_KEY);
   }
 
   logout(): void {
@@ -63,4 +64,10 @@ export class AuthService {
     });
   }
 
+  /**
+   * ✉️ Contact form
+   */
+  sendContactMessage(data: { name: string; email: string; subject: string; message: string }): Observable<any> {
+    return this.http.post(`${this.API}/users/contact/`, data);
+  }
 }

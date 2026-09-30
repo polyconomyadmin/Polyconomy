@@ -1,8 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { LucideAngularModule, ArrowLeft, Send, CheckCircle } from 'lucide-angular';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-contact',
@@ -14,22 +15,43 @@ import { LucideAngularModule, ArrowLeft, Send, CheckCircle } from 'lucide-angula
 export class ContactComponent {
   icons = { ArrowLeft, Send, CheckCircle };
 
-  // Where contact submissions are sent. Update to the real inbox as needed.
-  private readonly ADMIN_EMAIL = 'polyconomy.admin@gmail.com';
-
   form = { name: '', email: '', subject: '', message: '' };
   sent = false;
+  sending = false;
+  error = '';
+
+  constructor(private auth: AuthService, private cdr: ChangeDetectorRef) {}
+
+  // "/" is the guest chat, so signed-in users must go back to /chat instead.
+  get homeLink(): string {
+    return this.auth.isAuthenticated() ? '/chat' : '/';
+  }
 
   submit() {
-    // No dedicated backend endpoint yet, so hand off to the user's mail client.
-    const body = `Name: ${this.form.name}\nEmail: ${this.form.email}\n\n${this.form.message}`;
-    const href =
-      `mailto:${this.ADMIN_EMAIL}` +
-      `?subject=${encodeURIComponent(this.form.subject)}` +
-      `&body=${encodeURIComponent(body)}`;
-    if (typeof window !== 'undefined') {
-      window.location.href = href;
+    const { name, email, subject, message } = this.form;
+    if (!name.trim() || !email.trim() || !subject.trim() || !message.trim()) {
+      this.error = 'Please fill in all fields.';
+      return;
     }
-    this.sent = true;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      this.error = 'Please enter a valid email address.';
+      return;
+    }
+
+    this.error = '';
+    this.sending = true;
+    // Sent server-side via Twilio SendGrid SMTP (see contact_message in users/views.py).
+    this.auth.sendContactMessage(this.form).subscribe({
+      next: () => {
+        this.sending = false;
+        this.sent = true;
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.sending = false;
+        this.error = err.error?.error || 'Sorry, your message could not be sent. Please try again.';
+        this.cdr.markForCheck();
+      },
+    });
   }
 }

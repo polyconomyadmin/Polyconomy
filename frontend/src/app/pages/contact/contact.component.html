@@ -1,6 +1,6 @@
 <div class="page">
   <header class="page-header">
-    <a class="back-btn" routerLink="/" aria-label="Back">
+    <a class="back-btn" [routerLink]="homeLink" aria-label="Back">
       <lucide-icon [img]="icons.ArrowLeft" size="20"></lucide-icon>
     </a>
     <h1>Contact Us</h1>
@@ -29,9 +29,11 @@
           <textarea required rows="5" [(ngModel)]="form.message" name="message"></textarea>
         </label>
 
-        <button type="submit" class="primary-btn">
+        <p class="form-error" *ngIf="error">{{ error }}</p>
+
+        <button type="submit" class="primary-btn" [disabled]="sending">
           <lucide-icon [img]="icons.Send" size="16"></lucide-icon>
-          Send Message
+          {{ sending ? 'Sending…' : 'Send Message' }}
         </button>
       </form>
     </ng-container>
@@ -40,7 +42,7 @@
       <lucide-icon [img]="icons.CheckCircle" size="56" class="check"></lucide-icon>
       <h2>Message Sent</h2>
       <p class="lede">Thank you for reaching out. We'll get back to you soon.</p>
-      <a class="primary-btn link" routerLink="/">Back to Chat</a>
+      <a class="primary-btn link" [routerLink]="homeLink">Back to Chat</a>
     </div>
   </div>
 </div>

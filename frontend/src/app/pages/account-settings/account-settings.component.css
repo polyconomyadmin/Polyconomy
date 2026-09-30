@@ -25,6 +25,11 @@
   transition: background 0.15s ease;
 }
 
+/* lucide-icon is inline by default; its line box lifts the arrow above the title. */
+.back-btn lucide-icon {
+  display: flex;
+}
+
 .back-btn:hover {
   background: hsl(var(--muted));
 }

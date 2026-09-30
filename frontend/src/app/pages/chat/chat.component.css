@@ -16,6 +16,8 @@
 /* --- Sidebar (chat history) --- */
 .sidebar {
   width: 300px;
+  /* Padding + border must sit inside the 300px, or the collapsed margin leaves a sliver showing. */
+  box-sizing: border-box;
   flex-shrink: 0;
   background: hsl(var(--sidebar-background));
   padding: 16px;
@@ -520,8 +522,19 @@ footer textarea {
   color: hsl(var(--primary-foreground));
   display: grid;
   place-items: center;
+  padding: 0;
   cursor: pointer;
   transition: background 0.15s ease, opacity 0.15s ease;
+}
+
+/* lucide-icon is inline by default, so its line box pushes the glyph off-centre. */
+.send-btn lucide-icon {
+  display: flex;
+}
+
+/* The paper plane's visual weight sits up and to the right of its box; nudge it back to look centred. */
+.send-btn:not(.stop) lucide-icon {
+  transform: translate(-1px, 1px);
 }
 
 .send-btn:hover:not(:disabled) {

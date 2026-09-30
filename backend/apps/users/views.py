@@ -309,7 +309,8 @@ def forgot_password(request):
 
         token = user.generate_reset_token()
         uid = str(user.id)
-        reset_url = f"{settings.FRONTEND_URL}/reset-password?uid={uid}&token={token}"
+        # FRONTEND_URL ends with "/"; a double slash breaks Angular routing to /reset-password.
+        reset_url = f"{settings.FRONTEND_URL.rstrip('/')}/reset-password?uid={uid}&token={token}"
 
         logger.info(f"Sending password reset email to {email}")
 
@@ -396,3 +397,52 @@ def reset_password(request):
     user.set_password(new_password)
     user.clear_reset_token()
     return JsonResponse({"message": "Password reset successful"})
+
+
+# =========================
+# CONTACT
+# =========================
+
+@csrf_exempt
+@require_POST
+def contact_message(request):
+    try:
+        data = json.loads(request.body or "{}")
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON body"}, status=400)
+
+    name = (data.get("name") or "").strip()[:200]
+    email = (data.get("email") or "").strip()[:254]
+    subject = (data.get("subject") or "").strip()[:200]
+    message = (data.get("message") or "").strip()[:5000]
+
+    if not name or not email or not subject or not message:
+        return JsonResponse({"error": "All fields are required"}, status=400)
+    if "@" not in email or any(c in email for c in "\r\n"):
+        return JsonResponse({"error": "Please enter a valid email address"}, status=400)
+
+    text_content = f"""New message from the Polyconomy contact form
+
+Name: {name}
+Email: {email}
+Subject: {subject}
+
+{message}
+"""
+
+    try:
+        # Sent from our verified sender; reply_to lets the admin reply straight to the user.
+        msg = EmailMultiAlternatives(
+            f"[Polyconomy Contact] {subject}",
+            text_content,
+            settings.DEFAULT_FROM_EMAIL,
+            [settings.CONTACT_EMAIL],
+            reply_to=[email],
+        )
+        msg.send()
+    except Exception as e:
+        logger.exception(f"Contact email failed from {email}: {str(e)}")
+        return JsonResponse({"error": "Sorry, your message could not be sent. Please try again later."}, status=502)
+
+    logger.info(f"Contact message sent from {email}")
+    return JsonResponse({"message": "Message sent"})

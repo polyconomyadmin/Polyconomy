@@ -151,6 +151,9 @@ EMAIL_USE_TLS = True
 
 FRONTEND_URL = 'https://polyconomy-74386831d29f.herokuapp.com/'
 
+# Inbox that receives Contact Us form submissions.
+CONTACT_EMAIL = os.environ.get('CONTACT_EMAIL', 'polyconomy.admin@gmail.com')
+
 # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 # EMAIL_HOST = 'smtp.gmail.com'
 # EMAIL_PORT = 587
