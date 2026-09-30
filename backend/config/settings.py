@@ -141,14 +141,17 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
-# Must be a verified sender in the SendGrid account that owns SENDGRID_API_KEY,
-# or SendGrid rejects the message (this is why reset emails weren't arriving).
+# Sent through Brevo's SMTP relay (free tier: 300 emails/day). The login and
+# SMTP key come from Brevo > SMTP & API > SMTP; use the SMTP key, not an API key.
+# The From address must be a verified sender in that Brevo account.
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'Polyconomy <polyconomy.admin@gmail.com>')
-EMAIL_HOST_USER = 'apikey'
-EMAIL_HOST_PASSWORD = os.environ.get('SENDGRID_API_KEY')
-EMAIL_HOST = 'smtp.sendgrid.net'
-EMAIL_PORT = 587
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp-relay.brevo.com')
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
 EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.environ.get('BREVO_SMTP_LOGIN')
+EMAIL_HOST_PASSWORD = os.environ.get('BREVO_SMTP_KEY')
+# Emails are sent during the request, so don't let a slow mail server hang it.
+EMAIL_TIMEOUT = 15
 
 
 FRONTEND_URL = 'https://polyconomy-74386831d29f.herokuapp.com/'

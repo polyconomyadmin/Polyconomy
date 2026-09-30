@@ -40,7 +40,7 @@ export class ContactComponent {
 
     this.error = '';
     this.sending = true;
-    // Sent server-side via Twilio SendGrid SMTP (see contact_message in users/views.py).
+    // Sent server-side via Brevo SMTP (see contact_message in users/views.py).
     this.auth.sendContactMessage(this.form).subscribe({
       next: () => {
         this.sending = false;
