@@ -89,15 +89,39 @@
   margin: 0 0 16px;
 }
 
+/* 2x2 grid: Buckingham logos on top, Vinson + IEA below. */
 .collab-logos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: center;
+  justify-items: center;
+  gap: 32px 40px;
+}
+
+.collab-logos a {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 40px;
+  max-width: 100%;
 }
 
 .collab-logos img {
-  height: 44px;
+  display: block;
+  max-width: 100%;
   width: auto;
   object-fit: contain;
+}
+
+/* Logos have very different aspect ratios, so each gets its own height
+   to look visually balanced rather than sharing one fixed height. */
+.logo-uni img { height: 38px; }
+.logo-computing img { height: 84px; }
+.logo-vinson img { height: 56px; }
+.logo-iea img { height: 76px; }
+
+@media (max-width: 480px) {
+  .collab-logos {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
 }
