@@ -145,3 +145,25 @@ def query_rag_full(question: str) -> dict:
             return fallback
 
     return fallback
+
+def check_rag_health(timeout: float = 5) -> bool:
+    """
+    Quick reachability check for the health endpoint. Any normal HTTP reply
+    (even a 404 for "/") means the RAG host is up; connection failures,
+    gateway errors, or ngrok's "endpoint offline" page mean it is down.
+    """
+    if not settings.RAG_SERVICE_URL:
+        return False
+    try:
+        response = requests.get(
+            settings.RAG_SERVICE_URL.rstrip("/") + "/",
+            headers=_headers(),
+            timeout=timeout,
+        )
+    except requests.RequestException as e:
+        print("RAG health check failed:", e)
+        return False
+    if "ngrok-error-code" in response.headers:
+        print("RAG health check failed: ngrok", response.headers["ngrok-error-code"])
+        return False
+    return response.status_code not in (502, 503, 504)

@@ -116,3 +116,109 @@ button:hover {
     border-radius: 16px;
   }
 }
+
+/* Server maintenance popup — matches the chat modals (guest-chat.component.css) */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(5px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  animation: fadeIn 0.25s ease-in-out;
+}
+
+.modal {
+  background: hsl(var(--card));
+  width: 90%;
+  max-width: 350px;
+  padding: 24px 20px;
+  border-radius: 20px;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  animation: slideUp 0.25s ease-out;
+}
+
+.modal-icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: hsl(var(--destructive) / 0.1);
+  color: hsl(var(--destructive));
+}
+
+.modal-icon lucide-icon {
+  display: flex;
+}
+
+.modal h2 {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0 0 12px;
+  color: hsl(var(--foreground));
+}
+
+.modal p {
+  font-size: 15px;
+  color: hsl(var(--muted-foreground));
+  margin: 0 0 24px;
+  line-height: 1.5;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.modal-actions button {
+  flex: 1;
+  padding: 12px 0;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.modal-actions .cancel {
+  background: hsl(var(--secondary));
+  color: hsl(var(--secondary-foreground));
+  font-weight: 500;
+}
+
+.modal-actions .cancel:hover {
+  background: hsl(var(--accent));
+  transform: translateY(-1px);
+}
+
+.modal-actions .primary {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  font-weight: 600;
+}
+
+.modal-actions .primary:hover:not(:disabled) {
+  background: hsl(210 100% 45%);
+  transform: translateY(-1px);
+}
+
+.modal-actions .primary:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(50px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}

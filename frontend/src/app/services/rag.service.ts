@@ -19,9 +19,10 @@
 // }
 
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError, timer } from 'rxjs';
-import { switchMap, map, filter, take } from 'rxjs/operators';
+import { switchMap, map, filter, take, timeout, catchError } from 'rxjs/operators';
+import { HealthService } from './health.service';
 
 interface SubmitResponse {
   task_id: string;
@@ -39,8 +40,10 @@ interface StatusResponse {
 export class RagService {
   private readonly baseUrl = 'https://polyconomy-74386831d29f.herokuapp.com/api/query/';
   private readonly pollIntervalMs = 3000;
+  // The backend waits on the RAG server indefinitely, so give up here instead of polling forever.
+  private readonly maxWaitMs = 5 * 60 * 1000;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private health: HealthService) {}
 
   queryRag(text: string): Observable<{ response: string }> {
     return this.http.post<SubmitResponse>(
@@ -49,7 +52,18 @@ export class RagService {
       { headers: { 'Content-Type': 'application/json' } }
     ).pipe(
       switchMap(submitRes => this.pollStatus(submitRes.task_id)),
-      map(answer => ({ response: answer }))
+      map(answer => ({ response: answer })),
+      timeout(this.maxWaitMs),
+      catchError(err => {
+        if (err instanceof HttpErrorResponse) {
+          // The request itself failed, so ask the health endpoint which part is down.
+          this.health.check();
+        } else {
+          // The backend answered but the RAG query errored or never finished.
+          this.health.report('rag');
+        }
+        return throwError(() => err);
+      })
     );
   }
 

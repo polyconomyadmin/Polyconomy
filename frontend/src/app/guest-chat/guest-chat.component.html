@@ -60,7 +60,8 @@
 
         <button class="pill-btn" (click)="goToContact()">Contact Us</button>
         <button class="pill-btn" (click)="goToAbout()">About Us</button>
-        <button class="pill-btn primary" (click)="goToSignIn()">Sign In</button>
+        <!-- Disabled while the sidebar already shows its own Sign In -->
+        <button class="pill-btn primary" (click)="goToSignIn()" [disabled]="sidebarOpen">Sign In</button>
       </div>
     </header>
 

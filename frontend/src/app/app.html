@@ -1,1 +1,22 @@
+
+
 <router-outlet></router-outlet>
+
+<!-- Server maintenance popup (state in services/health.service.ts) -->
+@if (health.outage(); as outage) {
+  <div class="modal-backdrop" role="alertdialog" aria-modal="true" aria-labelledby="outage-title">
+    <div class="modal">
+      <div class="modal-icon">
+        <lucide-icon [img]="outageCopy[outage].icon" size="28"></lucide-icon>
+      </div>
+      <h2 id="outage-title">{{ outageCopy[outage].title }}</h2>
+      <p>{{ outageCopy[outage].message }}</p>
+      <div class="modal-actions">
+        <button class="cancel" (click)="health.dismiss()">Close</button>
+        <button class="primary" (click)="health.check()" [disabled]="health.checking()">
+          {{ health.checking() ? 'Checking…' : 'Try Again' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

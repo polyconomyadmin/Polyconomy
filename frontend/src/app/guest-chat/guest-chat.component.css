@@ -190,8 +190,14 @@ header {
   border-color: transparent;
 }
 
-.pill-btn.primary:hover {
+.pill-btn.primary:hover:not(:disabled) {
   background: hsl(210 100% 45%);
+}
+
+.pill-btn.primary:disabled {
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+  cursor: default;
 }
 
 /* --- Messages --- */
