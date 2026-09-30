@@ -5,7 +5,7 @@ import { AuthService } from '../../services/auth.service';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
-import { Pin, Trash2, Menu, Send, Globe, Copy, Share2, Volume2, RotateCcw, Pencil, Square, Plus } from 'lucide-angular';
+import { Pin, Trash2, Menu, Send, Globe, Copy, Share2, Volume2, RotateCcw, Pencil, Square, Plus, Download } from 'lucide-angular';
 import { RagService } from '../../services/rag.service';
 
 interface Message {
@@ -40,7 +40,7 @@ export class ChatComponent implements OnInit {
   currentChat: Chat | null = null;
   newMessage: string = '';
   API = 'https://polyconomy-74386831d29f.herokuapp.com/api/users';
-  icons = { Pin, Trash2, Menu, Send, Globe, Copy, Share2, Volume2, RotateCcw, Pencil, Square, Plus };
+  icons = { Pin, Trash2, Menu, Send, Globe, Copy, Share2, Volume2, RotateCcw, Pencil, Square, Plus, Download };
 
   showDeleteModal: boolean = false;
   chatToDelete: Chat | null = null;
@@ -161,6 +161,48 @@ export class ChatComponent implements OnInit {
         this.closeDeleteModal();
         this.cdr.markForCheck();
       });
+  }
+
+  // ─── CSV export (signed-in only: this page is behind authGuard) ────────────
+
+  /** True once the chat has at least one question, so there's something worth exporting. */
+  canExport(chat: Chat | null): boolean {
+    return !!chat?.messages.some(m => m.sender === 'user');
+  }
+
+  exportChatCsv(chat: Chat | null) {
+    if (!chat || !this.canExport(chat)) return;
+    chat.showOptions = false;
+
+    // Skip the automatic greeting: start from the first question.
+    const firstQuestion = chat.messages.findIndex(m => m.sender === 'user');
+    const rows = [['Sender', 'Message']];
+    for (const m of chat.messages.slice(firstQuestion)) {
+      rows.push([m.sender === 'user' ? 'User' : 'Polyconomy', m.text]);
+    }
+    const csv = rows.map(r => r.map(cell => this.csvCell(cell)).join(',')).join('\r\n');
+
+    // BOM so Excel opens it as UTF-8 (keeps translated / non-English text intact).
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = this.csvFilename(chat);
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  private csvCell(value: string): string {
+    // Stop spreadsheets treating text like "=SUM(...)" as a formula. "-" is left alone
+    // because AI answers often start with "- " bullet points.
+    const safe = /^[=+@\t\r]/.test(value) ? `'${value}` : value;
+    return `"${safe.replace(/"/g, '""')}"`;
+  }
+
+  private csvFilename(chat: Chat): string {
+    const slug = (chat.title || 'chat').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 50) || 'chat';
+    const date = new Date().toISOString().slice(0, 10);
+    return `polyconomy-${slug}-${date}.csv`;
   }
 
   // ─── About / Contact navigation ────────────────────────────────────────────

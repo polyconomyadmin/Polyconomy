@@ -150,7 +150,13 @@
   border-radius: 6px;
 }
 
-.chat-options button:hover {
+.chat-options button:disabled {
+  color: hsl(var(--muted-foreground));
+  opacity: 0.6;
+  cursor: default;
+}
+
+.chat-options button:hover:not(:disabled) {
   background: hsl(var(--muted));
 }
 
@@ -265,7 +271,12 @@ header {
   transition: background 0.15s ease, border-color 0.15s ease;
 }
 
-.pill-btn:hover {
+.pill-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.pill-btn:hover:not(:disabled) {
   background: hsl(var(--muted));
 }
 
