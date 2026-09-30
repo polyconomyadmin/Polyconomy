@@ -201,3 +201,9 @@ body {
   box-shadow: none !important;
 }
 
+
+/* Lucide renders an inline <svg>, which sits on the text baseline and leaves a
+   gap below it, pushing every icon ~2-3px above centre. Block removes the gap. */
+lucide-icon svg {
+  display: block;
+}
