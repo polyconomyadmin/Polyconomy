@@ -54,9 +54,6 @@ export class ChatComponent implements OnInit, OnDestroy {
   sidebarOpen: boolean = true;
   userMenuOpen = false;
 
-  // Upgrade requests go to the same inbox as the Contact form (CONTACT_EMAIL on the backend).
-  private readonly UPGRADE_EMAIL = 'polyconomy.admin@gmail.com';
-
   // Below this width the sidebar overlays the chat, so it starts closed.
   private mobileQuery: MediaQueryList | null = null;
   private onMobileChange = (e: MediaQueryListEvent) => {
@@ -127,19 +124,12 @@ export class ChatComponent implements OnInit, OnDestroy {
     return ((parts[0]?.[0] ?? '') + (parts.length > 1 ? parts[parts.length - 1][0] : '')).toUpperCase() || 'U';
   }
 
-  get planLabel(): string {
-    const plan = this.user?.plan;
-    return plan ? plan.charAt(0).toUpperCase() + plan.slice(1) : 'Free';
-  }
+  // No billing yet, so everyone is on Free (user.plan is the sign-up account type).
+  readonly planLabel = 'Free';
 
-  get upgradeMailto(): string {
-    const subject = 'Plan upgrade request';
-    const body =
-      `Hi Polyconomy team,\n\nI'd like to upgrade my plan.\n\n` +
-      `Name: ${this.user?.name || ''}\n` +
-      `Username: ${this.user?.username || ''}\n` +
-      `Current plan: ${this.planLabel}\n`;
-    return `mailto:${this.UPGRADE_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  goToPlans() {
+    this.userMenuOpen = false;
+    this.router.navigate(['/plans']);
   }
 
   toggleUserMenu(event: MouseEvent) {

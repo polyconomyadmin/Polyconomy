@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
+import { tap } from 'rxjs/operators';
 
 interface AuthResponse {
   token: string;
@@ -62,6 +63,33 @@ export class AuthService {
       token,
       password,
     });
+  }
+
+  /**
+   * 👤 Profile (these endpoints check the login token)
+   */
+  private authHeaders(): HttpHeaders {
+    return new HttpHeaders({ Authorization: `Bearer ${localStorage.getItem(this.TOKEN_KEY) || ''}` });
+  }
+
+  /** Replaces the stored user so the rest of the app sees the change. */
+  setUser(user: any): void {
+    localStorage.setItem(this.USER_KEY, JSON.stringify(user));
+  }
+
+  /** Send only the fields to change: a new name, and/or avatar (a data: URL, or null to remove). */
+  updateProfile(changes: { name?: string; avatar?: string | null }): Observable<{ user: any }> {
+    return this.http
+      .post<{ user: any }>(`${this.API}/users/profile/`, changes, { headers: this.authHeaders() })
+      .pipe(tap(res => this.setUser({ ...this.getUser(), ...res.user })));
+  }
+
+  changePassword(currentPassword: string, newPassword: string): Observable<any> {
+    return this.http.post(
+      `${this.API}/users/change-password/`,
+      { current_password: currentPassword, new_password: newPassword },
+      { headers: this.authHeaders() }
+    );
   }
 
   /**

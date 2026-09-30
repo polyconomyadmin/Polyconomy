@@ -45,17 +45,20 @@
     <div class="user-area">
       <div class="user-menu" *ngIf="userMenuOpen" (click)="$event.stopPropagation()">
         <div class="user-menu-header">
-          <span class="avatar">{{ initials }}</span>
+          <span class="avatar">
+            <img *ngIf="user?.avatar" [src]="user.avatar" alt="" />
+            <ng-container *ngIf="!user?.avatar">{{ initials }}</ng-container>
+          </span>
           <div class="user-text">
             <span class="user-name">{{ displayName }}</span>
             <span class="user-plan">{{ planLabel }}</span>
           </div>
         </div>
         <div class="menu-divider"></div>
-        <a class="menu-item" [href]="upgradeMailto" (click)="userMenuOpen = false">
+        <button class="menu-item" (click)="goToPlans()">
           <lucide-icon [img]="icons.Sparkles" size="18"></lucide-icon>
           Upgrade plan
-        </a>
+        </button>
         <button class="menu-item" (click)="userMenuOpen = false; goToSettings()">
           <lucide-icon [img]="icons.CircleUser" size="18"></lucide-icon>
           Profile
@@ -69,13 +72,16 @@
 
       <div class="user-card" [class.open]="userMenuOpen">
         <button class="user-card-main" (click)="toggleUserMenu($event)" aria-haspopup="menu" [attr.aria-expanded]="userMenuOpen">
-          <span class="avatar">{{ initials }}</span>
+          <span class="avatar">
+            <img *ngIf="user?.avatar" [src]="user.avatar" alt="" />
+            <ng-container *ngIf="!user?.avatar">{{ initials }}</ng-container>
+          </span>
           <span class="user-text">
             <span class="user-name">{{ displayName }}</span>
             <span class="user-plan">{{ planLabel }}</span>
           </span>
         </button>
-        <a class="upgrade-btn" [href]="upgradeMailto">Upgrade</a>
+        <button class="upgrade-btn" (click)="goToPlans()">Upgrade</button>
       </div>
     </div>
 

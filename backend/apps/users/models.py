@@ -22,6 +22,8 @@ class User(me.Document):
     password_hash = me.StringField(required=True)
     plan = me.StringField(choices=["student", "professional", "enterprise"])
     is_admin = me.BooleanField(default=False)
+    # Small square profile picture stored inline as a data: URL (resized in the browser).
+    avatar = me.StringField(default=None)
     chats = me.EmbeddedDocumentListField(Chat, default=[])
     created_at = me.DateTimeField(default=datetime.utcnow)
     

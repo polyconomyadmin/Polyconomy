@@ -3,7 +3,7 @@ from . import views
 from .views import (
     signup_user, login_user, get_chats, start_new_chat,
     add_message, delete_chat, pin_chat, forgot_password, reset_password,
-    contact_message
+    contact_message, update_profile, change_password
 )
 
 urlpatterns = [
@@ -17,6 +17,8 @@ urlpatterns = [
     path("forgot-password/", forgot_password),
     path("reset-password/", reset_password),
     path("contact/", contact_message),
+    path("profile/", update_profile),
+    path("change-password/", change_password),
     # NOTE: RAG endpoints (api/query/, api/query/<task_id>/status/) are
     # registered once, directly in config/urls.py, and are NOT duplicated
     # here. rag.service.ts calls /api/query/ (no /api/users/ prefix), so

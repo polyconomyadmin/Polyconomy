@@ -16,7 +16,7 @@ from mongoengine.queryset.visitor import Q
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from .jwt_utils import create_jwt
+from .jwt_utils import create_jwt, get_user_from_request
 from .models import Chat, Message, RagQuery, User
 from .rag import query_rag_full  # only need the "full" client now
 
@@ -72,7 +72,8 @@ def signup_user(request):
                 "username": user.username,
                 "email": user.email,
                 "name": user.name,
-                "plan": user.plan
+                "plan": user.plan,
+                "avatar": user.avatar,
             }
         }, status=201)
 
@@ -108,7 +109,8 @@ def login_user(request):
                 "username": user.username,
                 "email": user.email,
                 "name": user.name,
-                "plan": user.plan
+                "plan": user.plan,
+                "avatar": user.avatar,
             }
         }, status=200)
 
@@ -446,3 +448,89 @@ Subject: {subject}
 
     logger.info(f"Contact message sent from {email}")
     return JsonResponse({"message": "Message sent"})
+
+
+# =========================
+# PROFILE
+# =========================
+
+# Data URL for a ~256px JPEG is ~20-40 KB; cap well above that but keep documents small.
+MAX_AVATAR_LENGTH = 300_000
+AVATAR_PREFIXES = ("data:image/jpeg;base64,", "data:image/png;base64,", "data:image/webp;base64,")
+
+
+def _user_payload(user):
+    return {
+        "username": user.username,
+        "email": user.email,
+        "name": user.name,
+        "plan": user.plan,
+        "avatar": user.avatar,
+    }
+
+
+@csrf_exempt
+@require_POST
+def update_profile(request):
+    user = get_user_from_request(request)
+    if not user:
+        return JsonResponse({"error": "Please sign in again"}, status=401)
+
+    try:
+        data = json.loads(request.body or "{}")
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON body"}, status=400)
+
+    if "name" in data:
+        name = (data.get("name") or "").strip()
+        if not name:
+            return JsonResponse({"error": "Name can't be empty"}, status=400)
+        if len(name) > 100:
+            return JsonResponse({"error": "Name is too long"}, status=400)
+        user.name = name
+
+    if "avatar" in data:
+        avatar = data.get("avatar")
+        if avatar is None:
+            user.avatar = None
+        elif (
+            not isinstance(avatar, str)
+            or not avatar.startswith(AVATAR_PREFIXES)
+            or len(avatar) > MAX_AVATAR_LENGTH
+        ):
+            return JsonResponse({"error": "Please choose a smaller JPEG, PNG or WebP image"}, status=400)
+        else:
+            user.avatar = avatar
+
+    user.save()
+    return JsonResponse({"user": _user_payload(user)})
+
+
+@csrf_exempt
+@require_POST
+def change_password(request):
+    user = get_user_from_request(request)
+    if not user:
+        return JsonResponse({"error": "Please sign in again"}, status=401)
+
+    try:
+        data = json.loads(request.body or "{}")
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON body"}, status=400)
+
+    current = data.get("current_password") or ""
+    new = data.get("new_password") or ""
+
+    if not user.check_password(current):
+        return JsonResponse({"error": "Current password is incorrect"}, status=400)
+    if len(new) < 8:
+        return JsonResponse({"error": "New password must be at least 8 characters"}, status=400)
+    if new == current:
+        return JsonResponse({"error": "New password must be different"}, status=400)
+
+    user.set_password(new)
+    # Any outstanding reset link should stop working once the password changes.
+    user.reset_token = None
+    user.reset_token_expiry = None
+    user.save()
+    return JsonResponse({"message": "Password changed"})

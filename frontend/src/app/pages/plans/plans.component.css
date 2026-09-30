@@ -1,0 +1,227 @@
+/* Upgrade Plan — Base44 look, driven by global design tokens */
+.page {
+  /* body has overflow: hidden (for the chat layout), so the page scrolls itself. */
+  height: 100vh;
+  height: 100dvh;
+  overflow-y: auto;
+  background: hsl(var(--muted));
+  font-family: var(--font-body);
+  color: hsl(var(--foreground));
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 24px;
+  border-bottom: 1px solid hsl(var(--border));
+  background: hsl(var(--background));
+}
+
+.back-btn {
+  display: grid;
+  place-items: center;
+  padding: 8px;
+  margin-left: -8px;
+  border-radius: 8px;
+  color: hsl(var(--foreground));
+  transition: background 0.15s ease;
+}
+
+/* lucide-icon is inline by default; its line box lifts the arrow above the title. */
+.back-btn lucide-icon {
+  display: flex;
+}
+
+.back-btn:hover {
+  background: hsl(var(--muted));
+}
+
+.page-header h1 {
+  font-family: var(--font-heading);
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.content {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 32px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.card {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 14px;
+  padding: 24px;
+}
+
+.card h2 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 16px;
+  color: hsl(var(--foreground));
+}
+
+/* Plans */
+.plans {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.plan {
+  border: 1px solid hsl(var(--border));
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.plan.current {
+  border-color: hsl(var(--primary));
+  background: hsl(var(--primary) / 0.06);
+}
+
+.plan-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.plan-head h3 {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.plan-check {
+  color: hsl(var(--primary));
+}
+
+.price {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 12px;
+}
+
+.plan ul {
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.plan li {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+}
+
+.feat-check {
+  color: #22c55e;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.upgrade-btn {
+  width: 100%;
+  padding: 9px;
+  border: none;
+  border-radius: 10px;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.upgrade-btn:hover {
+  background: hsl(210 100% 45%);
+}
+
+.current-tag {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 500;
+  color: hsl(var(--primary));
+}
+
+.upgrade-btn {
+  display: block;
+  text-align: center;
+  text-decoration: none;
+}
+
+.upgrade-btn:hover {
+  text-decoration: none;
+}
+
+/* "Questions about our plans?" */
+.help-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.help-icon {
+  color: hsl(var(--primary));
+  flex-shrink: 0;
+}
+
+.help-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.help-text h2 {
+  margin: 0;
+}
+
+.muted {
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+  margin: 4px 0 0;
+}
+
+.secondary-btn {
+  flex-shrink: 0;
+  padding: 10px 20px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 10px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.15s ease;
+}
+
+.secondary-btn:hover {
+  background: hsl(var(--muted));
+  text-decoration: none;
+}
+
+@media (max-width: 640px) {
+  .plans {
+    grid-template-columns: 1fr;
+  }
+  .help-card {
+    flex-wrap: wrap;
+  }
+  .secondary-btn {
+    width: 100%;
+    text-align: center;
+  }
+}
