@@ -6,28 +6,40 @@ Polyconomy is an AI assistant for economics. Users ask questions in a chat inter
 - **Repository:** https://github.com/polyconomyadmin/Polyconomy
 - **Admin inbox:** polyconomy.admin@gmail.com (receives Contact Us messages and upgrade requests)
 
-This document is written for handoff: it should be enough for a new developer to run, change and deploy the project without prior context.
+This README is the starting point for anyone joining the project. It explains what the app does, how the pieces fit together, how to run and deploy it, and the quirks worth knowing before you change anything. If you're new, start with [Your first week](#your-first-week).
 
 ---
 
 ## Contents
 
-1. [Features](#features)
-2. [Architecture](#architecture)
-3. [Tech stack](#tech-stack)
-4. [Repository layout](#repository-layout)
-5. [Running locally](#running-locally)
-6. [Building and deploying](#building-and-deploying)
-7. [Environment variables](#environment-variables)
-8. [Frontend](#frontend)
-9. [Backend API](#backend-api)
-10. [Data model](#data-model)
-11. [How a question is answered (RAG flow)](#how-a-question-is-answered-rag-flow)
-12. [Health checks and outage popups](#health-checks-and-outage-popups)
-13. [Email](#email)
-14. [External services and accounts](#external-services-and-accounts)
-15. [Known issues and gotchas](#known-issues-and-gotchas)
-16. [Handoff checklist](#handoff-checklist)
+1. [Your first week](#your-first-week)
+2. [Features](#features)
+3. [Architecture](#architecture)
+4. [Tech stack](#tech-stack)
+5. [Repository layout](#repository-layout)
+6. [Running locally](#running-locally)
+7. [Building and deploying](#building-and-deploying)
+8. [Environment variables](#environment-variables)
+9. [Frontend](#frontend)
+10. [Backend API](#backend-api)
+11. [Data model](#data-model)
+12. [How a question is answered (RAG flow)](#how-a-question-is-answered-rag-flow)
+13. [Health checks and outage popups](#health-checks-and-outage-popups)
+14. [Email](#email)
+15. [Services and accounts](#services-and-accounts)
+16. [Common tasks](#common-tasks)
+17. [Known issues and gotchas](#known-issues-and-gotchas)
+
+---
+
+## Your first week
+
+1. **Use the product.** Open the [live site](https://polyconomy-74386831d29f.herokuapp.com/), ask a few questions as a guest, then sign up and try the signed-in chat, Profile and Upgrade Plan pages. [Features](#features) lists everything there is to find.
+2. **Read [Architecture](#architecture).** The one-diagram overview explains most of the surprises in this codebase, especially that the built frontend is committed into `backend/`.
+3. **Get access.** Ask the team for the accounts in [Services and accounts](#services-and-accounts) that your work needs. Most frontend work needs only GitHub.
+4. **Run the frontend locally** ([Running locally](#running-locally)). Read the warning there first: local runs talk to the live backend.
+5. **Make a small change end to end**, for example a text tweak on the About page, and follow [Building and deploying](#building-and-deploying) to see how it reaches the live site. Check with the team before your first push, since `main` deploys straight to production.
+6. **Skim [Known issues and gotchas](#known-issues-and-gotchas)** before picking up bigger work.
 
 ---
 
@@ -414,9 +426,9 @@ Upgrade requests don't go through the server: the Upgrade Plan page opens a `mai
 
 ---
 
-## External services and accounts
+## Services and accounts
 
-Make sure access to each of these is transferred in a handoff.
+The project depends on these services. Ask the team for access to the ones your work touches.
 
 | Service | Used for | Where it's configured |
 |---|---|---|
@@ -427,6 +439,31 @@ Make sure access to each of these is transferred in a handoff.
 | Brevo | Sending email | `BREVO_SMTP_LOGIN`, `BREVO_SMTP_KEY` |
 | Gmail `polyconomy.admin@gmail.com` | Admin inbox, email sender identity | |
 | Google Translate | Page translation widget and chat translation | No key (uses public endpoints) |
+
+---
+
+## Common tasks
+
+**Change a page's look or text.** Edit the component under `frontend/src/app/` (each page has `.html`, `.css` and `.ts` files side by side), check it with `npm start`, then rebuild and commit the built files ([Building and deploying](#building-and-deploying)).
+
+**Add a new page.**
+1. Create a standalone component under `frontend/src/app/pages/<name>/`, copying the structure of a similar page (the About and Plans pages are simple examples).
+2. Add a route in `frontend/src/app/app.routes.ts`; add `canActivate: [authGuard]` if it's for signed-in users only.
+3. If the page scrolls, give its outer element the `.page` pattern used by About/Profile (`height: 100dvh; overflow-y: auto`), because `body` doesn't scroll.
+
+**Add a backend endpoint.**
+1. Write the view in `backend/apps/users/views.py` (or `backend/api/views.py` for app-wide things like health).
+2. Register it in the matching `urls.py`.
+3. If it acts on a user's own data, get the user with `get_user_from_request(request)` and return `401` when it's `None`. `update_profile` is a good example to copy.
+4. Call it from an Angular service in `frontend/src/app/services/`. Send the login token the way `AuthService.updateProfile` does.
+
+**Add a field to users.** Add it to `User` in `backend/apps/users/models.py` (MongoEngine needs no migration; existing documents just don't have the field until it's set), then include it in the `user` object returned by login, signup and `_user_payload` so the frontend receives it.
+
+**Change the email sender or provider.** Update the Heroku config vars described in [Email](#email); no code change is needed for another SMTP provider.
+
+**Point the app at a new RAG service URL.** Update `RAG_SERVICE_URL` in Heroku, then check `/api/health/` reports `"rag": "ok"`.
+
+**Deploy.** Push to `main` (after rebuilding the frontend if you changed it). Confirm with the checks in [Checking a deploy](#checking-a-deploy).
 
 ---
 
@@ -442,17 +479,3 @@ Make sure access to each of these is transferred in a handoff.
 - **Old `RagQuery` documents accumulate**; consider a TTL index on `created_at`.
 - **Unused files:** `backend/apps/users/rag-*.py`, `backend/apps/users/papers/`, and the commented-out Google sign-in code in `backend/api/views.py`.
 - **Plans aren't real tiers yet:** see [Plans and account types](#plans-and-account-types). Adding paid plans needs a new field on `User` (e.g. `subscription`) and a billing integration.
-
----
-
-## Handoff checklist
-
-- [ ] GitHub repo access transferred (admin on `polyconomyadmin/Polyconomy`)
-- [ ] Heroku app access transferred (owner or collaborator)
-- [ ] MongoDB Atlas project access transferred; database user credentials rotated
-- [ ] RAG service: notebook, model files, ngrok account and `RAG_API_KEY` handed over, with instructions for restarting it and updating `RAG_SERVICE_URL`
-- [ ] Brevo account access transferred; SMTP key rotated
-- [ ] Gmail admin inbox (`polyconomy.admin@gmail.com`) access transferred; password and recovery options updated
-- [ ] All Heroku config vars in [Environment variables](#environment-variables) confirmed set
-- [ ] `/api/health/` returns `ok` for database and RAG
-- [ ] Test end to end: sign up, ask a question, password reset email arrives, Contact Us email arrives
