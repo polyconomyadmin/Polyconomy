@@ -34,6 +34,6 @@ function googleTranslateElementInit() {
 
 <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
-<script src="/static/frontend/main-3EGHKF2I.js" type="module"></script>
+<script src="/static/frontend/main-IF3ZWT5Y.js" type="module"></script>
 
 </body></html>`;
