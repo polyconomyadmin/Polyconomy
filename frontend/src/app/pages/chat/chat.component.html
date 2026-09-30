@@ -10,8 +10,11 @@
     </button>
 
     <div class="chat-list">
-      <h3 *ngIf="pinnedChats.length > 0">Pinned</h3>
-      <ul *ngIf="pinnedChats.length > 0">
+      <button class="section-toggle" *ngIf="pinnedChats.length > 0" (click)="togglePinned()" [attr.aria-expanded]="!pinnedCollapsed">
+        Pinned
+        <lucide-icon [img]="icons.ChevronDown" size="14" class="chevron" [class.collapsed]="pinnedCollapsed"></lucide-icon>
+      </button>
+      <ul *ngIf="pinnedChats.length > 0 && !pinnedCollapsed">
         <li *ngFor="let chat of pinnedChats" [class.active]="currentChat?.chat_id === chat.chat_id" (click)="selectChat(chat)">
           <span class="chat-title">{{ chat.title }}</span>
           <div class="chat-options-container">
@@ -25,8 +28,11 @@
         </li>
       </ul>
 
-      <h3 *ngIf="otherChats.length > 0">Chats</h3>
-      <ul *ngIf="otherChats.length > 0">
+      <button class="section-toggle" *ngIf="otherChats.length > 0" (click)="toggleOther()" [attr.aria-expanded]="!otherCollapsed">
+        Chats
+        <lucide-icon [img]="icons.ChevronDown" size="14" class="chevron" [class.collapsed]="otherCollapsed"></lucide-icon>
+      </button>
+      <ul *ngIf="otherChats.length > 0 && !otherCollapsed">
         <li *ngFor="let chat of otherChats" [class.active]="currentChat?.chat_id === chat.chat_id" (click)="selectChat(chat)">
           <span class="chat-title">{{ chat.title }}</span>
           <div class="chat-options-container">

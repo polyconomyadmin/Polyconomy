@@ -7,7 +7,7 @@ import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
-import { Pin, Trash2, Menu, Send, Globe, Copy, Share2, Volume2, RotateCcw, Pencil, Square, Plus, Sparkles, CircleUser, LogOut } from 'lucide-angular';
+import { Pin, Trash2, Menu, Send, Globe, Copy, Share2, Volume2, RotateCcw, Pencil, Square, Plus, Sparkles, CircleUser, LogOut, ChevronDown } from 'lucide-angular';
 import { RagService } from '../../services/rag.service';
 import { HealthService } from '../../services/health.service';
 
@@ -43,7 +43,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   currentChat: Chat | null = null;
   newMessage: string = '';
   API = 'https://polyconomy-74386831d29f.herokuapp.com/api/users';
-  icons = { Pin, Trash2, Menu, Send, Globe, Copy, Share2, Volume2, RotateCcw, Pencil, Square, Plus, Sparkles, CircleUser, LogOut };
+  icons = { Pin, Trash2, Menu, Send, Globe, Copy, Share2, Volume2, RotateCcw, Pencil, Square, Plus, Sparkles, CircleUser, LogOut, ChevronDown };
 
   showDeleteModal: boolean = false;
   chatToDelete: Chat | null = null;
@@ -89,6 +89,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.user = this.auth.getUser();
     this.loadChats();
+    if (typeof localStorage !== 'undefined') this.loadCollapsed();
 
     if (typeof window === 'undefined') return; // server-side prerender
 
@@ -160,8 +161,32 @@ export class ChatComponent implements OnInit, OnDestroy {
     chat.showOptions = false;
   }
 
-  togglePinned() { this.pinnedCollapsed = !this.pinnedCollapsed; }
-  toggleOther() { this.otherCollapsed = !this.otherCollapsed; }
+  togglePinned() {
+    this.pinnedCollapsed = !this.pinnedCollapsed;
+    this.saveCollapsed();
+  }
+
+  toggleOther() {
+    this.otherCollapsed = !this.otherCollapsed;
+    this.saveCollapsed();
+  }
+
+  // Remember which sidebar sections are collapsed (per browser; purely a convenience).
+  private readonly COLLAPSED_KEY = 'sidebarCollapsed';
+
+  private loadCollapsed() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(this.COLLAPSED_KEY) || '{}');
+      this.pinnedCollapsed = !!saved.pinned;
+      this.otherCollapsed = !!saved.chats;
+    } catch { /* storage unavailable or corrupt: default to expanded */ }
+  }
+
+  private saveCollapsed() {
+    try {
+      localStorage.setItem(this.COLLAPSED_KEY, JSON.stringify({ pinned: this.pinnedCollapsed, chats: this.otherCollapsed }));
+    } catch { /* storage unavailable: state just won't persist */ }
+  }
 
   loadChats() {
     this.http.get<any>(`${this.API}/chats/${this.user.username}/`).subscribe(res => {

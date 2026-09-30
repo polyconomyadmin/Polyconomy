@@ -59,13 +59,34 @@
   padding: 0 4px;
 }
 
-.chat-list h3 {
+.section-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 12px 0 4px;
+  padding: 4px;
+  background: none;
+  border: none;
+  border-radius: 6px;
   font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: hsl(var(--muted-foreground));
-  margin: 12px 4px 6px;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.section-toggle:hover {
+  color: hsl(var(--foreground));
+}
+
+.section-toggle .chevron {
+  transition: transform 0.15s ease;
+}
+
+.section-toggle .chevron.collapsed {
+  transform: rotate(-90deg);
 }
 
 .chat-list ul {
@@ -140,6 +161,7 @@
 
 .chat-options button {
   width: 100%;
+  box-sizing: border-box;
   background: none;
   border: none;
   text-align: left;
@@ -862,6 +884,7 @@ footer textarea {
 
 .menu-item {
   width: 100%;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   gap: 12px;
