@@ -6,40 +6,28 @@ Polyconomy is an AI assistant for economics. Users ask questions in a chat inter
 - **Repository:** https://github.com/polyconomyadmin/Polyconomy
 - **Admin inbox:** polyconomy.admin@gmail.com (receives Contact Us messages and upgrade requests)
 
-This README is the starting point for anyone joining the project. It explains what the app does, how the pieces fit together, how to run and deploy it, and the quirks worth knowing before you change anything. If you're new, start with [Your first week](#your-first-week).
+This README explains what the app does, how the pieces fit together, how to run and deploy it, and the quirks worth knowing before you change anything.
 
 ---
 
 ## Contents
 
-1. [Your first week](#your-first-week)
-2. [Features](#features)
-3. [Architecture](#architecture)
-4. [Tech stack](#tech-stack)
-5. [Repository layout](#repository-layout)
-6. [Running locally](#running-locally)
-7. [Building and deploying](#building-and-deploying)
-8. [Environment variables](#environment-variables)
-9. [Frontend](#frontend)
-10. [Backend API](#backend-api)
-11. [Data model](#data-model)
-12. [How a question is answered (RAG flow)](#how-a-question-is-answered-rag-flow)
-13. [Health checks and outage popups](#health-checks-and-outage-popups)
-14. [Email](#email)
-15. [Services and accounts](#services-and-accounts)
-16. [Common tasks](#common-tasks)
-17. [Known issues and gotchas](#known-issues-and-gotchas)
-
----
-
-## Your first week
-
-1. **Use the product.** Open the [live site](https://polyconomy-74386831d29f.herokuapp.com/), ask a few questions as a guest, then sign up and try the signed-in chat, Profile and Upgrade Plan pages. [Features](#features) lists everything there is to find.
-2. **Read [Architecture](#architecture).** The one-diagram overview explains most of the surprises in this codebase, especially that the built frontend is committed into `backend/`.
-3. **Get access.** Ask the team for the accounts in [Services and accounts](#services-and-accounts) that your work needs. Most frontend work needs only GitHub.
-4. **Run the frontend locally** ([Running locally](#running-locally)). Read the warning there first: local runs talk to the live backend.
-5. **Make a small change end to end**, for example a text tweak on the About page, and follow [Building and deploying](#building-and-deploying) to see how it reaches the live site. Check with the team before your first push, since `main` deploys straight to production.
-6. **Skim [Known issues and gotchas](#known-issues-and-gotchas)** before picking up bigger work.
+1. [Features](#features)
+2. [Architecture](#architecture)
+3. [Tech stack](#tech-stack)
+4. [Repository layout](#repository-layout)
+5. [Running locally](#running-locally)
+6. [Building and deploying](#building-and-deploying)
+7. [Environment variables](#environment-variables)
+8. [Frontend](#frontend)
+9. [Backend API](#backend-api)
+10. [Data model](#data-model)
+11. [How a question is answered (RAG flow)](#how-a-question-is-answered-rag-flow)
+12. [Health checks and outage popups](#health-checks-and-outage-popups)
+13. [Email](#email)
+14. [Services and accounts](#services-and-accounts)
+15. [Common tasks](#common-tasks)
+16. [Known issues and gotchas](#known-issues-and-gotchas)
 
 ---
 
