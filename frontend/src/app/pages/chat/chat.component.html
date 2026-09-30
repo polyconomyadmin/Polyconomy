@@ -1,4 +1,7 @@
 <div class="app-layout">
+  <!-- Mobile only: tap outside the sidebar to close it -->
+  <div class="sidebar-backdrop" *ngIf="sidebarOpen" (click)="toggleSidebar()"></div>
+
   <!-- Sidebar: chat history -->
   <aside class="sidebar" [class.collapsed]="!sidebarOpen">
     <button class="new-chat-btn" (click)="createNewChat()">
@@ -36,6 +39,44 @@
           </div>
         </li>
       </ul>
+    </div>
+
+    <!-- User card + menu -->
+    <div class="user-area">
+      <div class="user-menu" *ngIf="userMenuOpen" (click)="$event.stopPropagation()">
+        <div class="user-menu-header">
+          <span class="avatar">{{ initials }}</span>
+          <div class="user-text">
+            <span class="user-name">{{ displayName }}</span>
+            <span class="user-plan">{{ planLabel }}</span>
+          </div>
+        </div>
+        <div class="menu-divider"></div>
+        <a class="menu-item" [href]="upgradeMailto" (click)="userMenuOpen = false">
+          <lucide-icon [img]="icons.Sparkles" size="18"></lucide-icon>
+          Upgrade plan
+        </a>
+        <button class="menu-item" (click)="userMenuOpen = false; goToSettings()">
+          <lucide-icon [img]="icons.CircleUser" size="18"></lucide-icon>
+          Profile
+        </button>
+        <div class="menu-divider"></div>
+        <button class="menu-item" (click)="auth.logout()">
+          <lucide-icon [img]="icons.LogOut" size="18"></lucide-icon>
+          Log out
+        </button>
+      </div>
+
+      <div class="user-card" [class.open]="userMenuOpen">
+        <button class="user-card-main" (click)="toggleUserMenu($event)" aria-haspopup="menu" [attr.aria-expanded]="userMenuOpen">
+          <span class="avatar">{{ initials }}</span>
+          <span class="user-text">
+            <span class="user-name">{{ displayName }}</span>
+            <span class="user-plan">{{ planLabel }}</span>
+          </span>
+        </button>
+        <a class="upgrade-btn" [href]="upgradeMailto">Upgrade</a>
+      </div>
     </div>
 
     <!-- <div class="developed-by">
@@ -77,8 +118,6 @@
 
         <button class="pill-btn" (click)="goToContact()">Contact Us</button>
         <button class="pill-btn" (click)="goToAbout()">About Us</button>
-        <button class="username" *ngIf="user?.name || user?.username" (click)="goToSettings()" title="Account settings">{{ user.name || user.username }}</button>
-        <button class="pill-btn" (click)="auth.logout()">Sign Out</button>
       </div>
     </header>
 

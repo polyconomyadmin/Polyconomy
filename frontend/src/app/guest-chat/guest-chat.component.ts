@@ -3,10 +3,10 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
-import { Pin, Trash2, LogIn, Menu, Send, Globe, Lock, Copy, Share2, Volume2, RotateCcw, Pencil, Square } from 'lucide-angular';
+import { Pin, Trash2, LogIn, Send, Globe, Lock, Copy, Share2, Volume2, RotateCcw, Pencil, Square } from 'lucide-angular';
 import { LandingComponent } from '../pages/landing/landing.component';
-import { App } from '../app';
 import { RagService } from '../services/rag.service';
+import { HealthService } from '../services/health.service';
 
 interface Message {
   text: string;
@@ -41,7 +41,7 @@ export class GuestChatComponent implements OnInit {
   otherChats: Chat[] = [];
   currentChat: Chat | null = null;
   newMessage: string = '';
-  icons = { Pin, Trash2, LogIn, Menu, Send, Globe, Lock, Copy, Share2, Volume2, RotateCcw, Pencil, Square };
+  icons = { Pin, Trash2, LogIn, Send, Globe, Lock, Copy, Share2, Volume2, RotateCcw, Pencil, Square };
 
   // Streaming state (Base44-style word-by-word reveal)
   isGenerating = false;
@@ -56,20 +56,18 @@ export class GuestChatComponent implements OnInit {
   otherCollapsed: boolean = false;
 
   showLimitModal: boolean = false;
-  sidebarOpen: boolean = true;
 
   @ViewChild('messagesContainer') messagesContainer!: ElementRef;
   @ViewChild(LandingComponent) landingComponent!: LandingComponent;
 
   constructor(
     private router: Router,
-    private app: App,
     private ragService: RagService,
+    private health: HealthService,
     private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
-    this.app.setFooterVisibility(false);
     this.loadChats();
 
     document.addEventListener('click', () => {
@@ -81,10 +79,6 @@ export class GuestChatComponent implements OnInit {
 
   goToSignIn() {
     this.router.navigate(['/login']);
-  }
-
-  toggleSidebar() {
-    this.sidebarOpen = !this.sidebarOpen;
   }
 
   // ─── Sidebar / Chat Management ────────────────────────────────────────────
@@ -190,10 +184,27 @@ export class GuestChatComponent implements OnInit {
       return;
     }
 
+    // AI known to be down: show the popup and leave the text in the box, unsent.
+    if (this.health.ragDown()) {
+      this.health.report('rag');
+      return;
+    }
+
     const text = this.newMessage;
     this.currentChat.messages.push({ text, sender: 'user', timestamp: new Date().toISOString() });
     this.newMessage = '';
-    this.askRag(text);
+    this.askRag(text, true);
+  }
+
+  /** Undo a send: drop the question's bubble and put its text back in the input. */
+  private restoreUnsentMessage(text: string) {
+    const msgs = this.currentChat?.messages;
+    const last = msgs?.[msgs.length - 1];
+    if (last && last.sender === 'user' && last.text === text) msgs!.pop();
+    this.newMessage = text;
+    this.isGenerating = false;
+    this.streamingText = '';
+    this.cdr.markForCheck();
   }
 
   /**
@@ -202,7 +213,7 @@ export class GuestChatComponent implements OnInit {
    * without adding another user bubble. While waiting, isGenerating shows the
    * typing dots; once the text arrives it is revealed word-by-word.
    */
-  async askRag(text: string) {
+  async askRag(text: string, fromSend = false) {
     if (!this.currentChat) return;
     this.isGenerating = true;
     this.streamingText = '';
@@ -228,6 +239,11 @@ export class GuestChatComponent implements OnInit {
       error: async (err) => {
         console.error('[askRag] RAG error:', err);
         if (this.cancelStream) return;
+        if (fromSend) {
+          // The outage popup explains it; pull the question back into the box as if never sent.
+          this.restoreUnsentMessage(text);
+          return;
+        }
         let errorMsg = 'Sorry, something went wrong.';
         if (langToUse !== 'en') {
           errorMsg = await this.translateText(errorMsg, langToUse);

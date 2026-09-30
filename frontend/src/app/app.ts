@@ -40,8 +40,6 @@ export class App implements OnInit {
   private router = inject(Router);
   private isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
-  showFooter = true; // default visible
-
   ngOnInit() {
     // Prerendered HTML must not bake in a result, so only check in the browser.
     if (!this.isBrowser) return;
@@ -54,14 +52,5 @@ export class App implements OnInit {
       .subscribe(e => {
         if (e.urlAfterRedirects.startsWith('/chat')) this.health.check();
       });
-  }
-
-  // Method to hide the footer
-  setFooterVisibility(show: boolean) {
-    this.showFooter = show;
-    // const footer = document.querySelector('footer') as HTMLElement;
-    // if (footer) {
-    //   footer.style.visibility = show ? 'visible' : 'hidden';
-    // }
   }
 }

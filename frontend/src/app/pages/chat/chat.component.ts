@@ -1,12 +1,15 @@
-import { Component, OnInit, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { HttpClient } from '@angular/common/http';
+import { Observable, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
-import { Pin, Trash2, Menu, Send, Globe, Copy, Share2, Volume2, RotateCcw, Pencil, Square, Plus } from 'lucide-angular';
+import { Pin, Trash2, Menu, Send, Globe, Copy, Share2, Volume2, RotateCcw, Pencil, Square, Plus, Sparkles, CircleUser, LogOut } from 'lucide-angular';
 import { RagService } from '../../services/rag.service';
+import { HealthService } from '../../services/health.service';
 
 interface Message {
   text: string;
@@ -32,7 +35,7 @@ interface Chat {
   templateUrl: './chat.component.html',
   styleUrls: ['./chat.component.css']
 })
-export class ChatComponent implements OnInit {
+export class ChatComponent implements OnInit, OnDestroy {
   user: any;
   chats: Chat[] = [];
   pinnedChats: Chat[] = [];
@@ -40,7 +43,7 @@ export class ChatComponent implements OnInit {
   currentChat: Chat | null = null;
   newMessage: string = '';
   API = 'https://polyconomy-74386831d29f.herokuapp.com/api/users';
-  icons = { Pin, Trash2, Menu, Send, Globe, Copy, Share2, Volume2, RotateCcw, Pencil, Square, Plus };
+  icons = { Pin, Trash2, Menu, Send, Globe, Copy, Share2, Volume2, RotateCcw, Pencil, Square, Plus, Sparkles, CircleUser, LogOut };
 
   showDeleteModal: boolean = false;
   chatToDelete: Chat | null = null;
@@ -49,12 +52,31 @@ export class ChatComponent implements OnInit {
   otherCollapsed: boolean = false;
 
   sidebarOpen: boolean = true;
+  userMenuOpen = false;
+
+  // Upgrade requests go to the same inbox as the Contact form (CONTACT_EMAIL on the backend).
+  private readonly UPGRADE_EMAIL = 'polyconomy.admin@gmail.com';
+
+  // Below this width the sidebar overlays the chat, so it starts closed.
+  private mobileQuery: MediaQueryList | null = null;
+  private onMobileChange = (e: MediaQueryListEvent) => {
+    this.sidebarOpen = !e.matches;
+    this.cdr.markForCheck();
+  };
+  private closeMenus = () => {
+    this.chats.forEach(chat => (chat.showOptions = false));
+    this.userMenuOpen = false;
+    this.cdr.markForCheck();
+  };
 
   // Streaming state (Base44-style word-by-word reveal)
   isGenerating = false;
   streamingText = '';
   private streamTimer: any = null;
   private cancelStream = false;
+  // A just-sent question isn't saved until the AI answers (or the user stops it),
+  // so a failed send can be pulled back into the input without leaving a trace.
+  private pendingQuestion: string | null = null;
 
   @ViewChild('messagesContainer') messagesContainer!: ElementRef;
 
@@ -62,6 +84,7 @@ export class ChatComponent implements OnInit {
     public auth: AuthService,
     private http: HttpClient,
     private ragService: RagService,
+    private health: HealthService,
     private cdr: ChangeDetectorRef,
     private router: Router
   ) {}
@@ -70,15 +93,66 @@ export class ChatComponent implements OnInit {
     this.user = this.auth.getUser();
     this.loadChats();
 
-    document.addEventListener('click', () => {
-      this.chats.forEach(chat => (chat.showOptions = false));
-    });
+    if (typeof window === 'undefined') return; // server-side prerender
+
+    this.mobileQuery = window.matchMedia('(max-width: 768px)');
+    this.sidebarOpen = !this.mobileQuery.matches;
+    this.mobileQuery.addEventListener('change', this.onMobileChange);
+
+    document.addEventListener('click', this.closeMenus);
+  }
+
+  ngOnDestroy() {
+    this.mobileQuery?.removeEventListener('change', this.onMobileChange);
+    if (typeof document !== 'undefined') document.removeEventListener('click', this.closeMenus);
+  }
+
+  private get isMobile(): boolean {
+    return !!this.mobileQuery?.matches;
+  }
+
+  /** On phones the sidebar covers the chat, so close it once the user has picked something. */
+  private closeSidebarOnMobile() {
+    if (this.isMobile) this.sidebarOpen = false;
+  }
+
+  // ─── User menu (bottom of sidebar) ────────────────────────────────────────
+
+  get displayName(): string {
+    return this.user?.name || this.user?.username || 'User';
+  }
+
+  get initials(): string {
+    const parts = this.displayName.trim().split(/\s+/);
+    return ((parts[0]?.[0] ?? '') + (parts.length > 1 ? parts[parts.length - 1][0] : '')).toUpperCase() || 'U';
+  }
+
+  get planLabel(): string {
+    const plan = this.user?.plan;
+    return plan ? plan.charAt(0).toUpperCase() + plan.slice(1) : 'Free';
+  }
+
+  get upgradeMailto(): string {
+    const subject = 'Plan upgrade request';
+    const body =
+      `Hi Polyconomy team,\n\nI'd like to upgrade my plan.\n\n` +
+      `Name: ${this.user?.name || ''}\n` +
+      `Username: ${this.user?.username || ''}\n` +
+      `Current plan: ${this.planLabel}\n`;
+    return `mailto:${this.UPGRADE_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  }
+
+  toggleUserMenu(event: MouseEvent) {
+    event.stopPropagation();
+    this.chats.forEach(c => (c.showOptions = false));
+    this.userMenuOpen = !this.userMenuOpen;
   }
 
   // ─── Sidebar / Chat Management ────────────────────────────────────────────
 
   toggleOptions(chat: Chat, event: MouseEvent) {
     event.stopPropagation();
+    this.userMenuOpen = false;
     this.chats.forEach(c => {
       if (c.chat_id !== chat.chat_id) c.showOptions = false;
     });
@@ -123,6 +197,7 @@ export class ChatComponent implements OnInit {
       }
 
       this.currentChat = newChat;
+      if (addToSidebar) this.closeSidebarOnMobile();
       this.addAIMessage(
         this.currentChat,
         `Hello ${this.user.name}!! I'm Polyconomy, an AI trained on economics research and literature.\nI can help explain concepts, discuss theories, and explore economic ideas.\nPlease note, I provide information for understanding only and cannot offer personalised financial advice.\nThink of me as a guide to economic knowledge, not a decision-maker.`
@@ -132,6 +207,7 @@ export class ChatComponent implements OnInit {
 
   selectChat(chat: Chat) {
     this.currentChat = chat;
+    this.closeSidebarOnMobile();
     setTimeout(() => this.scrollToBottom(), 50);
   }
 
@@ -224,16 +300,39 @@ export class ChatComponent implements OnInit {
   async sendMessage() {
     if (!this.newMessage.trim() || !this.currentChat || this.isGenerating) return;
 
+    // AI known to be down: show the popup and leave the text in the box, unsent.
+    if (this.health.ragDown()) {
+      this.health.report('rag');
+      return;
+    }
+
     const text = this.newMessage;
     this.currentChat.messages.push({ text, sender: 'user', timestamp: new Date().toISOString() });
     this.newMessage = '';
+    this.pendingQuestion = text;
+    this.askRag(text, true);
+  }
 
-    // Save user message to backend
-    this.http
+  /** Saves the pending question; completes once saved so the answer is stored after it. */
+  private savePendingQuestion(): Observable<unknown> {
+    const text = this.pendingQuestion;
+    if (text === null || !this.currentChat) return of(null);
+    this.pendingQuestion = null;
+    return this.http
       .post(`${this.API}/chats/${this.user.username}/${this.currentChat.chat_id}/add/`, { text, sender: 'user' })
-      .subscribe();
+      .pipe(catchError(() => of(null)));
+  }
 
-    this.askRag(text);
+  /** Undo a send: drop the question's bubble and put its text back in the input. */
+  private restoreUnsentMessage(text: string) {
+    const msgs = this.currentChat?.messages;
+    const last = msgs?.[msgs.length - 1];
+    if (last && last.sender === 'user' && last.text === text) msgs!.pop();
+    this.pendingQuestion = null;
+    this.newMessage = text;
+    this.isGenerating = false;
+    this.streamingText = '';
+    this.cdr.markForCheck();
   }
 
   /**
@@ -241,7 +340,7 @@ export class ChatComponent implements OnInit {
    * sendMessage so "Try again" and "Edit" can regenerate without adding another
    * user bubble or re-saving the question. Reveals the reply word-by-word.
    */
-  async askRag(text: string) {
+  async askRag(text: string, fromSend = false) {
     if (!this.currentChat) return;
     this.isGenerating = true;
     this.streamingText = '';
@@ -262,11 +361,16 @@ export class ChatComponent implements OnInit {
           aiResponse = await this.translateText(aiResponse, langToUse);
         }
         if (this.cancelStream) return;
-        this.streamResponse(aiResponse);
+        this.savePendingQuestion().subscribe(() => this.streamResponse(aiResponse));
       },
       error: async (err) => {
         console.error('[askRag] RAG error:', err);
         if (this.cancelStream) return;
+        if (fromSend) {
+          // The outage popup explains it; pull the question back into the box as if never sent.
+          this.restoreUnsentMessage(text);
+          return;
+        }
         let errorMsg = 'Sorry, something went wrong.';
         if (langToUse !== 'en') {
           errorMsg = await this.translateText(errorMsg, langToUse);
@@ -312,6 +416,8 @@ export class ChatComponent implements OnInit {
     } else {
       this.isGenerating = false;
       this.streamingText = '';
+      // The question stays on screen, so keep it in the saved history too.
+      this.savePendingQuestion().subscribe();
     }
     this.cdr.markForCheck();
   }

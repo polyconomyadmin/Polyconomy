@@ -1,7 +1,7 @@
 import { Injectable, signal } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { of } from 'rxjs';
-import { catchError, map, timeout } from 'rxjs/operators';
+import { catchError, timeout } from 'rxjs/operators';
 
 /**
  * What's down, if anything:
@@ -31,25 +31,42 @@ export class HealthService {
   readonly outage = signal<Outage>(null);
   readonly checking = signal(false);
 
+  // The AI being down doesn't raise a popup on load; we remember it and show the
+  // popup only when the user tries to send a message (see sendMessage in the chats).
+  readonly ragDown = signal(false);
+
   constructor(private http: HttpClient) {}
 
-  /** Calls /api/health/ and updates outage. */
-  check() {
+  /**
+   * Calls /api/health/ and updates outage. An AI outage only raises the popup when
+   * showRag is set (a message failed) or the AI popup is already showing (Try Again).
+   * With showRag, the AI popup shows even if everything reports healthy, since the
+   * user's message still failed.
+   */
+  check(showRag = false) {
     if (this.checking()) return;
     this.checking.set(true);
     this.http.get<HealthResponse>(`${this.API}/health/`).pipe(
       timeout(this.TIMEOUT_MS),
-      map(res => this.classify(res)),
       // A 503 still carries the JSON body saying which part is down.
-      catchError(err => of(this.classify(err instanceof HttpErrorResponse ? err.error : null)))
-    ).subscribe(outage => {
+      catchError(err => of(err instanceof HttpErrorResponse ? (err.error as HealthResponse) : null))
+    ).subscribe(res => {
+      const outage = this.classify(res);
       this.checking.set(false);
-      this.outage.set(outage);
+      this.ragDown.set(res?.rag === 'down');
+      if (outage === 'rag' && !showRag && this.outage() !== 'rag') {
+        this.outage.set(null);
+      } else if (outage === null && showRag) {
+        this.outage.set('rag');
+      } else {
+        this.outage.set(outage);
+      }
     });
   }
 
   /** Called when a chat query fails or stalls, so the popup shows mid-conversation too. */
   report(outage: Exclude<Outage, null>) {
+    if (outage === 'rag') this.ragDown.set(true);
     this.outage.set(outage);
   }
 
@@ -57,7 +74,8 @@ export class HealthService {
     this.outage.set(null);
   }
 
-  private classify(res: HealthResponse | null): Outage {
+  private classify(res: HealthResponse | string | null): Outage {
+    if (typeof res !== 'object') res = null; // e.g. an HTML 404 page
     if (res?.status === 'ok') return null;
     // The database is the more fundamental failure, so it wins if both are down.
     if (res?.database === 'down') return 'database';

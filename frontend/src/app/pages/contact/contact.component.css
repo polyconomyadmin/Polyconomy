@@ -1,6 +1,9 @@
 /* Contact page — Base44 look, driven by global design tokens */
 .page {
-  min-height: 100vh;
+  /* body has overflow: hidden (for the chat layout), so the page scrolls itself. */
+  height: 100vh;
+  height: 100dvh;
+  overflow-y: auto;
   background: hsl(var(--background));
   font-family: var(--font-body);
   color: hsl(var(--foreground));

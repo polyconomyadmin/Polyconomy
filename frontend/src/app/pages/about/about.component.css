@@ -1,6 +1,9 @@
 /* About page — Base44 look, driven by global design tokens */
 .page {
-  min-height: 100vh;
+  /* body has overflow: hidden (for the chat layout), so the page scrolls itself. */
+  height: 100vh;
+  height: 100dvh;
+  overflow-y: auto;
   background: hsl(var(--background));
   font-family: var(--font-body);
   color: hsl(var(--foreground));
@@ -78,6 +81,11 @@
 }
 
 .collab {
+  /* Wider than the 640px text column so all the logos fit on one row on desktop. */
+  width: min(880px, calc(100vw - 48px));
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
   margin-top: 48px;
   padding-top: 32px;
   border-top: 1px solid hsl(var(--border));
@@ -89,13 +97,13 @@
   margin: 0 0 16px;
 }
 
-/* 2x2 grid: Buckingham logos on top, Vinson + IEA below. */
+/* One row that wraps onto more lines as the window narrows. */
 .collab-logos {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  justify-items: center;
-  gap: 32px 40px;
+  justify-content: center;
+  gap: 28px 40px;
 }
 
 .collab-logos a {
@@ -114,14 +122,7 @@
 
 /* Logos have very different aspect ratios, so each gets its own height
    to look visually balanced rather than sharing one fixed height. */
-.logo-uni img { height: 38px; }
-.logo-computing img { height: 84px; }
-.logo-vinson img { height: 56px; }
-.logo-iea img { height: 76px; }
-
-@media (max-width: 480px) {
-  .collab-logos {
-    grid-template-columns: 1fr;
-    gap: 28px;
-  }
-}
+.logo-uni img { height: 34px; }
+.logo-computing img { height: 72px; }
+.logo-vinson img { height: 50px; }
+.logo-iea img { height: 64px; }

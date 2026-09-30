@@ -16,7 +16,6 @@
 /* --- Sidebar --- */
 .sidebar {
   width: 300px;
-  /* Padding + border must sit inside the 300px, or the collapsed margin leaves a sliver showing. */
   box-sizing: border-box;
   flex-shrink: 0;
   background: hsl(var(--sidebar-background));
@@ -24,11 +23,6 @@
   border-right: 1px solid hsl(var(--sidebar-border));
   display: flex;
   flex-direction: column;
-  transition: margin-left 0.25s ease;
-}
-
-.sidebar.collapsed {
-  margin-left: -300px;
 }
 
 .sidebar-sign-in {
@@ -190,14 +184,12 @@ header {
   border-color: transparent;
 }
 
-.pill-btn.primary:hover:not(:disabled) {
+.pill-btn.primary:hover {
   background: hsl(210 100% 45%);
 }
 
-.pill-btn.primary:disabled {
-  background: hsl(var(--muted));
-  color: hsl(var(--muted-foreground));
-  cursor: default;
+.mobile-sign-in {
+  display: none;
 }
 
 /* --- Messages --- */
@@ -697,13 +689,18 @@ footer textarea {
 }
 
 @media (max-width: 768px) {
+  /* No room for the sign-in sidebar on phones; the header Sign In replaces it. */
   .sidebar {
-    position: fixed;
-    z-index: 1002;
-    height: 100%;
+    display: none;
   }
   .header-actions .pill-btn:not(.primary) {
     display: none;
+  }
+  .header-actions .language-dropdown {
+    display: none;
+  }
+  .mobile-sign-in {
+    display: inline-flex;
   }
 }
 

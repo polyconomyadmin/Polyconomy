@@ -57,7 +57,7 @@ export class RagService {
       catchError(err => {
         if (err instanceof HttpErrorResponse) {
           // The request itself failed, so ask the health endpoint which part is down.
-          this.health.check();
+          this.health.check(true);
         } else {
           // The backend answered but the RAG query errored or never finished.
           this.health.report('rag');
