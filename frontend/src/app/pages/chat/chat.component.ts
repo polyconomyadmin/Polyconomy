@@ -5,7 +5,7 @@ import { AuthService } from '../../services/auth.service';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
-import { Pin, Trash2, Menu, Send, Globe, Copy, Share2, Volume2, RotateCcw, Pencil, Square, Plus, Download } from 'lucide-angular';
+import { Pin, Trash2, Menu, Send, Globe, Copy, Share2, Volume2, RotateCcw, Pencil, Square, Plus } from 'lucide-angular';
 import { RagService } from '../../services/rag.service';
 
 interface Message {
@@ -40,7 +40,7 @@ export class ChatComponent implements OnInit {
   currentChat: Chat | null = null;
   newMessage: string = '';
   API = 'https://polyconomy-74386831d29f.herokuapp.com/api/users';
-  icons = { Pin, Trash2, Menu, Send, Globe, Copy, Share2, Volume2, RotateCcw, Pencil, Square, Plus, Download };
+  icons = { Pin, Trash2, Menu, Send, Globe, Copy, Share2, Volume2, RotateCcw, Pencil, Square, Plus };
 
   showDeleteModal: boolean = false;
   chatToDelete: Chat | null = null;
@@ -170,8 +170,8 @@ export class ChatComponent implements OnInit {
     return !!chat?.messages.some(m => m.sender === 'user');
   }
 
-  exportChatCsv(chat: Chat | null) {
-    if (!chat || !this.canExport(chat)) return;
+  exportChatCsv(chat: Chat) {
+    if (!this.canExport(chat)) return;
     chat.showOptions = false;
 
     // Skip the automatic greeting: start from the first question.

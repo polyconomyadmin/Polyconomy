@@ -75,10 +75,6 @@
           </div>
         </div>
 
-        <button class="pill-btn" (click)="exportChatCsv(currentChat)" [disabled]="!canExport(currentChat)" title="Download this chat as a CSV file">
-          <lucide-icon [img]="icons.Download" size="16"></lucide-icon>
-          Export
-        </button>
         <button class="pill-btn" (click)="goToContact()">Contact Us</button>
         <button class="pill-btn" (click)="goToAbout()">About Us</button>
         <button class="username" *ngIf="user?.name || user?.username" (click)="goToSettings()" title="Account settings">{{ user.name || user.username }}</button>
