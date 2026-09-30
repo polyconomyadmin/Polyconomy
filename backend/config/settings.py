@@ -141,7 +141,9 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
-DEFAULT_FROM_EMAIL = 'Madara Dassanayake <madara.dassanayakemu@buckingham.ac.uk>'
+# Must be a verified sender in the SendGrid account that owns SENDGRID_API_KEY,
+# or SendGrid rejects the message (this is why reset emails weren't arriving).
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'Polyconomy <polyconomy.admin@gmail.com>')
 EMAIL_HOST_USER = 'apikey'
 EMAIL_HOST_PASSWORD = os.environ.get('SENDGRID_API_KEY')
 EMAIL_HOST = 'smtp.sendgrid.net'
